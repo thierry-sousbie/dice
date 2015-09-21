@@ -1,0 +1,133 @@
+#ifndef __STATIC_POTENTIAL_SOLUTIONS_HXX__
+#define __STATIC_POTENTIAL_SOLUTIONS_HXX__
+
+#include "./staticPotential_type.hxx"
+
+#include "../internal/namespace.header" 
+
+namespace cosmo {
+
+  template <int ND>
+  class StaticPotentialSolutionsT
+  {
+  public:
+    typedef StaticPotentialType  PotentialType;
+    typedef StaticPotentialTypeV PotentialTypeV;
+    typedef StaticPotentialTypeSelect PotentialTypeSelect;
+
+    static const int NDIM = ND;
+
+    StaticPotentialSolutionsT(StaticPotentialType t=StaticPotentialTypeV::PLUMMER, 
+			      double mass=1, double G_=1)
+    {
+      setPotential(t,mass,G_);
+    }
+   
+    
+    void setPotential(StaticPotentialType t, double mass=1, double G_=1)
+    {
+      potentialType = t;
+      sphereMass = mass;
+      sphereRadius = radius;
+      G=G_;
+      
+
+      computeConstants();
+    }
+  
+    double acc_over_r(double r) const
+    {
+      switch (potentialType)
+	{
+	case StaticPotentialTypeV::UDF:
+	  return acc_over_r_UDF(r);
+	case StaticPotentialTypeV::PLUMMER:
+	  return acc_over_r_Plummer(r);
+	default:
+	  {};
+	}
+      return 0;
+    }
+
+    double density(double r) const
+    {
+      switch (potentialType)
+	{
+	case StaticPotentialTypeV::UDF:
+	  return density_UDF(r);
+	case StaticPotentialTypeV::PLUMMER:
+	  return density_Plummer(r);
+	default:
+	  {};
+	}
+      return 0;
+    }
+
+  private:
+
+    
+    StaticPotentialType potentialType;
+
+    struct Plummer_UDF {
+      double sphereMass;
+      double sphereRadius;
+      double sphereVolume;
+      double sphereDensity;
+      double G;
+      double cIn;
+      double cOut;
+
+      double density_UDF(double r) const
+      {    
+	if (r<=sphereRadius)
+	  return sphereDensity;
+	return 0;
+      }
+
+      double density_Plummer(double r) const
+      {
+	return sphereDensity * pow(1.+(r*r)/(sphereRadius*sphereRadius),-2.5);  
+      }
+
+      void computeConstants()
+      {
+	const double pi = 4.0L*atan(1.0L);
+
+	cIn = -G*sphereMass/pow(sphereRadius,3);
+	cOut = -G*sphereMass;
+	if (NDIM==3)
+	  sphereVolume  = 4.0L/3.0L * pi * pow(sphereRadius,3);
+	else
+	  sphereVolume  = 4.0L*pi*pow(sphereRadius,2);
+	sphereDensity = sphereMass/sphereVolume;
+      }
+
+      double acc_over_r_UDF(double r) const
+      {
+	if (r<=sphereRadius)
+	  return cIn;
+	else
+	  return cOut/(r*r*r);
+      }
+
+      double acc_over_r_Plummer(double r) const
+      {
+	return cOut*pow(r*r+sphereRadius*sphereRadius,-1.5);   
+      }    
+
+      void parse(R *reader, PM &paramsManager)
+      {
+	radius = 0.2;
+	radius = paramsManager.
+	  get("radius",parserCategory(),radius,reader,
+	      PM::FILE_FIRST,
+	      "Effective radius of the static potential");
+      }
+    } plummer_udf;
+   
+    
+  };
+} // namespace cosmo
+
+#include "../internal/namespace.footer"
+#endif

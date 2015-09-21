@@ -1,0 +1,150 @@
+v0.9.44
+  - Added 'dice-config' for easy library configuration
+  - Added an option to set a maximum level of refinement for simplices
+  - Added the possibility to project simplices above a given refinement threshold to be projected using their vertices instead of exact projection
+
+v0.9.43
+  - vtrSlicer can now project density
+  - Fixed small bugs and changed default time step to CFL_rho
+
+v0.9.42
+  - Greatly improved projection speed when a large number of threads are used
+
+v0.9.41
+  - Considerably increased refinement speed by reducing the number of simplices to consider on second and following passes.
+  - Multithreaded mesh creation is now faster
+
+v0.9.40
+  - Desactivated updateIncidentSimplices as it seems to have a very rarely occuring bug	
+  - Increased the precision of the computation of the expansion energy when doing cosmological simulations
+  - Corrected loadImbalance computation for MPI and set noRepartWeight as default
+  - Timings are now outputed in a 'timings/' sub-directory, one file for each MPI process.
+  - Corrected units.H (removed the h0 factor) so that velocities are in gadget units (including h-1)
+
+v0.9.39
+  - Added a simplex generation that allow retieving the initial lagrangian domains and level of refinement for each simplex.
+  - line and subsets type dumps are now working with MPI
+  - Potential energy is now computed at order 0, which is enough and compatible with MPI ;)
+  - Fixed a bug in sortedBlock memory pool iterators after elements were recycled
+  - Added automatic detection of native architecture compilation flags
+  - Raised the limit on the maximum number of simplicies adjacent to a vertex from 256 to 65536 when computing simplices adjacency.
+  - Fixed a (spurious ?) valgrind warning in assignVertices_fast (localAmrGridDefaultVisitors.hxx:213)
+
+v0.9.38
+  - Default bounding box for cosmo and sineWaves is now centered on 0.
+  - "long_double" and "longdouble" are now accepted as alternatives to "long double" for the '-DPROJECTION_HR_FLOAT_TYPE' and '-DPROJECTION_FLOAT_TYPE' compile time parameters.
+
+v0.9.37
+  - Changes to make the code compatible with intel MPI library
+  - Corrected detection of FFTW3 in cmake
+  - Fixed a bug in the iterableMemoryPool: on some systems, recycled elements would not get tagged causing havoc in iterators.  
+
+v0.9.36
+  - Fixed the initial velocities for cosmo initial conditions by adding a factor of sqrt(a_ini). 
+  - Corrected a bug in refinement with MPI that would create inconsistencies in
+ the ghost layer in unprobable - but possible - configurations.  
+
+v0.9.35
+  - Added a parameter to set the position of the mesh in cosmo IC
+  - Added a compile flag for intel compilers to correct floating point arithmetic so that exact projection won't fail miserably anymore
+  - Fixed compilation with Clang++
+
+v0.9.34
+  - Changed the name of the library to DICE and solver to ColDICE
+
+v0.9.33
+  - Added vtrSlicer program in tools
+
+v0.9.32
+  - Added automatic projection mode switching
+  - Fixed a bug in gadget reader when double precision is used
+  - Added an option to set the center for computing density profiles
+  - Removed accuracy checking once in high resolution projection mode
+  - Fixed bug in CMakeList for solver compile time options
+
+v0.9.31
+  - Speed optimization in reprojection
+  - Improved compatibility with older compilers
+  - Added support from dd_real and qd_real from libqd, a faster and more portable alternative to float128
+  - Projection is now done in double-double precision by default (twice slower, almost twice as many digits precision)
+
+v0.9.30
+  - Fixed a very rare bug in orientation test for periodic boundary conditions
+
+v0.9.29
+  - Improved accuracy prediction for projection and corrected a few bugs
+  - Support for C++0x standard on older compilers
+
+v0.9.28
+  - Added the possibility to control exact projection accuracy and reproject only innacurate voxels if needed.
+
+v0.9.27
+  - Improved significantly the accuray of exact projection for very high density contrasts
+
+v0.9.26
+  - Fixed bug in static potential solutions
+  - Fixed a bug in imbalance computation that may hang MPI with spvps
+  - Fixed checkBoundary to prevent possible bug when projecting with a periodic box with one boundary with with coord 0.
+  - Fixed weighFunctorTag parameters (was causing more problems than solving them)
+
+v0.9.25
+  - Changed load balacing criteria
+  - Updated doxygen documentation
+
+v0.9.24
+  - Added chaotic initial conditions
+  - Added cosmological energy computation
+
+v0.9.23
+  - Added a message displaying solver configuration on the beginning of a run
+  - Changed sine waves initial condition for physical+cosmo
+  - Fixed phasedWaves cosmology  
+  - Added H as one of the initial conditions parameters
+
+v0.9.22
+  - Fixed a projection bug on periodic boundaries
+  - Implemented phasedWaves initial conditions
+  - Adding things to units in the solver
+
+v0.9.21
+  - Added 'a' to timing and statistic output files when using cosmo and an index to each column name in the headers.
+  - Added a global #define for the library that allows or forbid the usage of static variables in mesh.hxx. Having static tables will remove several reallocations but will prevent two meshes to be called in parallel ...
+  - Added a units.H parameter in the solver (equivalent of units.G for non-cosmo) that overrides the value of h0 (e.g. to have all units be =1)
+
+v0.9.20
+  - Implemented non periodic boundary conditions for FFT solver (via padding)
+  - Fixed a bug in addVoxel (localRegularGrid.hxx) so that voxels can now lie outside of the grid.
+  - Function getLeavesGridOverlap in localAmrGrid.hxx is now selecting only the voxels that *really* overlap grid (additional one were returned due to a bug)
+  - Made getLeavesGridOverlap faster by modifying internal::BoxOverlapHandlerT
+  - Added options to CMakeList.txt to allow compile time solver configuration (AMR grid root resolution, boundary conditions and NDIM)
+
+v0.9.19
+  - Fixed a projection bug when -solver.noRefine was true
+  - Increased the maximum number of neighbors in updateIncidentSimplices to 65536 (was 256).
+
+v0.9.18
+  - Implemented correct unit system for physical and cosmological systems
+
+v0.9.17:
+  - Fixed compilation errors when "-DUSE_OPENMP=false"
+  - Added higher order terms for SoS in orientation predicates.
+
+v0.9.16:
+  - Made some changes in the way error is computed when raytracing. These changes are commented for now until further testing.
+
+v0.9.15:
+  - Fixed a bug in init.cosmo that would make the program crash.
+  - Added optimization flags -O3 for OSX
+
+v0.9.14:
+  - Fixed compilation problems on OSX (drand48_data, clock_gettime, float128 ...)
+
+v0.9.13:
+  - Fixed the clonedDensity grid when using cosmology so that it contains the distribution before renormalization.
+  - IC_cosmo now propagates the initial conditions through MPI instead of reading them from each process.
+  - Fixed a bug that would make the program hang with MPI at "Painting remote chunks".
+  - Fixed the total mass that was wrong when using MPI
+
+v0.9.12:
+  - Fixed 0th order projection bug on periodic boundary conditions
+  - Fixed a bug in updateAdjacentSimplices with MPI 

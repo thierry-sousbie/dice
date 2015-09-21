@@ -1,0 +1,32 @@
+rm -f *~ \#*
+rm -f ./*/*~ ./*/\#*
+
+rm -f ./solvers/*~ ./solvers/\#*
+rm -f ./solvers/*/*~ ./solvers/*/\#*
+rm -f ./solvers/*/*/*~ ./solvers/*/*/\#*
+rm -f ./solvers/*/*/*/*~ ./solvers/*/*/*/\#*
+
+rm -f ./include/*~ ./include/\#*
+rm -f ./include/*/*~ ./include/*/\#*
+rm -f ./include/*/*/*~ ./include/*/*/\#*
+rm -f ./include/*/*/*/*~ ./include/*/*/*/\#*
+rm -f ./include/*/*/*/*/*~ ./include/*/*/*/*/\#*
+
+rm -f ./tests/*~ ./tests/\#*
+rm -f ./tests/*/*~ ./tests/*/\#*
+rm -f ./tests/*/*/*~ ./tests/*/*/\#*
+rm -f ./tests/*/*/*/*~ ./tests/*/*/*/\#*
+
+rm -f ./tools/*~ ./tools/\#*
+rm -f ./tools/*/*~ ./tools/*/\#*
+rm -f ./tools/*/*/*~ ./tools/*/*/\#*
+rm -f ./tools/*/*/*/*~ ./tools/*/*/*/\#*
+
+rm -rf ./build/*
+rm -f  ./bin/*
+rm -f  ./tests/bin/*
+rm -rf ./doc/html
+rm -rf ./doc/latex
+
+touch ./build/.VOID
+touch ./bin/.VOID

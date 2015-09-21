@@ -1,0 +1,2 @@
+#define MY_NAMESPACE dice
+namespace dice {

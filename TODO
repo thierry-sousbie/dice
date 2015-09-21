@@ -1,0 +1,30 @@
+** A-BUGS: 
+- Density profiles for Grids don't work correctly with MPI ! Only small changes to toFile(...) are probably needed ...
+- UpdateIncidentSimplices seem to have a very rarely occuring bug, so it is desactivated for now: all the incidences are recomputed everytime.
+
+** B-TODO NOW:
+- Implement a way to gather potential without having to store a full grid of size the projection mesh on each process !
+
+** C-TODO SOONER:
+- factorize vertices of AMR grid when dumping if vertices have been computed
+
+** D-TODO :
+- Add a poincare invariant check over all simplices.
+- the ghost layer can grow too much if no repartitionning/unrefinement occur, add an option for resetting it when appropriate.
+- symmetries do not work with MPI! but that's more complicated to deal with ...
+- Check that projection is robust WRT twice degenerate simplices (i.e. all 4 vertices are aligned)
+- Allow the ROOT level of AMR grid to change -> it should increase with time and end up removing the need for initial refinement !
+- Implement isotropic refinement (i.e. predefined segment spliting order, see in biblio ...)
+- Remove the need for a simplex tree if unrefinement is desactivated
+
+** E-TODO LATER:
+- Point in simplex tests can probably be made faster by first testing barycentric coordinates and segmentFace intersection. Could also cache orientations of each vertex ...
+- Allow multiple fields in localAMR
+- In localAMRGridProjector, allow projecting several fields at the same time (e.g. add a nfields in a the projection functors)
+
+** F-TODO OR NOT TODO :
+- make FFTWConvolver compatible with margins ? (e.g. for the force interpolation)
+- Optimize the AMR grid generation : we should be able to update the grid from the previous time step instead of computing it from scratch every time ...
+
+NOTES:
+
