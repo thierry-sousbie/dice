@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Dice by thierry-sousbie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Dice</h1>
+      <h2 class="project-tagline">DICE / ColDICE: collisionless phase space hydrodynamics library and solver</h2>
+      <a href="https://github.com/thierry-sousbie/dice" class="btn">View on GitHub</a>
+      <a href="https://github.com/thierry-sousbie/dice/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/thierry-sousbie/dice/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <pre><code> .----------------.  .----------------.  .----------------.  .----------------.
+| .--------------. || .--------------. || .--------------. || .--------------. |
+| |  ________    | || |     _____    | || |     ______   | || |  _________   | |
+| | |_   ___ `.  | || |    |_   _|   | || |   .' ___  |  | || | |_   ___  |  | |
+| |   | |   `. \ | || |      | |     | || |  / .'   \_|  | || |   | |_  \_|  | |
+| |   | |    | | | || |      | |     | || |  | |         | || |   |  _|  _   | |
+| |  _| |___.' / | || |     _| |_    | || |  \ `.___.'\  | || |  _| |___/ |  | |
+| | |________.'  | || |    |_____|   | || |   `._____.'  | || | |_________|  | |
+| |              | || |              | || |              | || |              | |
+| '--------------' || '--------------' || '--------------' || '--------------' |
+'----------------'  '----------------'  '----------------'  '----------------'
+</code></pre>
+
+<p>Version 0.9.44<br>
+Copyright(c) 2015 by Thierry Sousbie. All rights reserved.<br>
+Author: Thierry Sousbie - tsousbie[a]gmail[dot]com  </p>
+
+<p>DICE is a C++ template library designed to solve collisionless fluid dynamics in 6D phase space using massively parallel supercomputers via an hybrid OpenMP / MPI parallelization. This package implements a cosmological and physical VLASOV-POISSON solver for cold systems such as dark matter (CDM) dynamics called ColDICE and based on DICE.</p>
+
+<p>In particular, the following features are implemented in DICE so far:</p>
+
+<ul>
+<li>An MPI distributed unstructured simplicial mesh that can be dynamically refined and coarsened and supporting many additional features (e.g. dynamic load balancing, serialization, multi-threaded iterators, Peano-Hilbert ordering, high order quadratures, ...)</li>
+<li>A structured AMR (Adaptive mesh refinement) grid.</li>
+<li>An exact AMR grid raytracer (i.e. the sequence of AMR cells intersected by rays is guaranteed to be exact)</li>
+<li>Exact 2D and 3D rasterisation via a fast method to project exactly (i.e. by computing exact integrals instead of resorting to random sampling) a first order function defined over the MPI-distributed mesh onto a structured (AMR) grid.</li>
+<li>A MPI / OpenMP fourier space FFT solver.</li>
+<li>MPI distributed regular grids with support for complex iterators, various interpolation kernels and high order quadratures.</li>
+<li>Many other things ...</li>
+</ul>
+
+<h1>
+<a id="i-installation" class="anchor" href="#i-installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>(I) Installation</h1>
+
+<p>The DICE template library itself is located in the <code>include/dice/</code> directory and features 3 executables:</p>
+
+<ul>
+<li><p><code>dice-config</code>:<br>
+A utility to retrieve the compilation flags, defines and linker flags used when DICE was configured. This is used to make linking with DICE easy.</p></li>
+<li><p><code>netconv</code>:<br>
+A utility to convert unstructured mesh outputs to different file formats (e.g. VTK to use with paraview) and unperiodize them.</p></li>
+<li><p><code>vtrSlicer</code>:<br>
+A utility to extract slices or project fields from .vtr files (VTK format).</p></li>
+</ul>
+
+<p>The Cold dark matter fluid dynamics solver ColDICE is composed of 6 main binaries:</p>
+
+<ul>
+<li><p><code>coldice_2D</code> and <code>coldice_3D</code>:<br>
+The 2D and 3D versions of the vlasov poisson solver</p></li>
+<li><p><code>coldicePost_2D</code> and <code>coldicePost_3D</code>:<br>
+The 2D and 3D versions of utilities used to load restart files produced by coldice_2D and coldice_3D and post process them.</p></li>
+<li><p><code>coldiceStatic_2D</code> and <code>coldiceStatic_3D</code>:<br>
+The 2D and 3D versions of the static potential vlasov poisson solver</p></li>
+</ul>
+
+<h2>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<ul>
+<li>A recent C++ compiler compatible with C++11 standard (e.g. g++ v4.8.2+ or intel's icpc v11)<br>
+<strong>SEE NOTES BELOW FOR intel compiler users</strong>
+</li>
+<li>The Eigen library version 3.2.90+ (in external/)</li>
+<li>The Boost library version 1.57+ (the headers suffice, not need to compile it)</li>
+<li>SparseHash libray, already included in the distribution, no need to install it (in external/)</li>
+<li>The FFTW library version 3.3.4+ with optional thread support (if openMP is used) (in external/)</li>
+<li>The GMP library for arbitrary precision arithmetic (you probably have it already) (in external/)</li>
+<li>The Quadruple Double precision library libqd (in external/)<br>
+<strong>SEE NOTES BELOW for intel's compiler users</strong>
+</li>
+</ul>
+
+<p><em>Additional requirements for MPI support:</em>  </p>
+
+<ul>
+<li>A recent version of the MPI library<br>
+<strong>SEE NOTES BELOW for intel's MPI library users</strong>
+</li>
+<li>The MPI version of FFTW library version 3.3.4+ (in <code>external/</code>)</li>
+<li>The Metis 5.0+ and ParMETIS v4.0+ libraries (in <code>external/</code>)</li>
+</ul>
+
+<p><strong>IMPORTANT NOTES:</strong>  </p>
+
+<ul>
+<li>All necessary libraries can be found in the <code>external/</code> sub directory.</li>
+<li>Before installing metis and parmetis, set <code>IDXTYPEWIDTH 64</code> in <code>include/metis.h</code> and <code>metis/include/parmetis.h</code> respectively if required.</li>
+<li>metis and parmetis can be compiled with openmp, but it is not the case by default (make config openmp=1).</li>
+<li>When using intel compiler, Libqd <strong>MUST</strong> be compiled with <code>-fp-model precise</code> flag. Not doing so will result in exact projection algorithm failures !!!!</li>
+<li>When using intel MPI library, the code should be compiled with additional option <code>-mt_mpi</code> (use <code>-DCXX_FLAGS_EXTRA="-mt_mpi"</code> option with cmake)</li>
+</ul>
+
+<h2>
+<a id="installing" class="anchor" href="#installing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing</h2>
+
+<p>Installing is pretty simple, go to the distribution directory <code>${DIST_PATH}</code> and type:</p>
+
+<pre><code>cd build/
+cmake ../ &lt;options&gt;
+</code></pre>
+
+<p>A report will be displayed with default configuration and indications on how to change options (such as the installation path or path to libraries). Typical options are :</p>
+
+<pre><code>-DCMAKE_PREFIX_PATH=&lt;PATH&gt; indicates default path to all libraries
+-DNO_MPI=true to compile without MPI support
+</code></pre>
+
+<p>Other options are indicated in the report. Problems occuring during configuration that may need fixing are reported as red lines in the report together with a hint on what should be done. If such a problem occurs, you may optionally rerun cmake with different options (it is often advised to clean the cache first):</p>
+
+<pre><code>cd ../; ./cleanup; cd build/
+cmake ../ &lt;new options&gt;
+</code></pre>
+
+<p>Once everything is set, the code is built by running:</p>
+
+<pre><code>make -j N
+</code></pre>
+
+<p>where N is the number of cores to use in parallel.
+Upon completion, the resulting binaries are in <code>${DIST_PATH}/bin</code>.
+You can also optionally install the package by running:</p>
+
+<pre><code>make install
+</code></pre>
+
+<p>NOTE:<br>
+It may sometimes be necessary to clean-up all the files generated by cmake before changing cmake options (e.g. when a library was found but you want to use one from a different location, or when you want to change the compiler). This can be done by running the <code>cleanup</code> script from the distribution directory</p>
+
+<pre><code>cd ${DIST_PATH}
+./cleanup
+</code></pre>
+
+<p><strong>IMPORTANT NOTES:</strong>  </p>
+
+<ul>
+<li>When using intel compiler, Libqd <em>MUST</em> be compiled with <code>-fp-model precise</code> flag. Not doing so will result in exact projection algorithm failures !!!!</li>
+<li>When using intel MPI library, the code should be compiled with additional option <code>-mt_mpi</code> (use <code>-DCXX_FLAGS_EXTRA="-mt_mpi"</code> option with cmake) to enable multi-threading</li>
+</ul>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Using DICE in a program is relatively easy as it suffice to include relevant header files in your code. Compiling is also made easy thanks to the <code>dice-config</code> utility which can be used to retrieve the compiler options necessary to the proper functioning of DICE. To compile a program <code>dummy.cpp</code> using DICE, just do:</p>
+
+<pre><code>`${DICE_DIR}/bin/dice-config -all` -I${DICE_DIR}/include dummy.cpp -o dummy     
+</code></pre>
+
+<p>where <code>${DICE_DIR}</code> is the directory where dice was installed (or the directory where it was compiled if you did not install it). Note that <code>dice-config</code> can also list flags, defines and libraries individually for more complex projects.</p>
+
+<h1>
+<a id="ii-documentation" class="anchor" href="#ii-documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>(II) Documentation</h1>
+
+<p>The documentation is located in the <code>${DIST_PATH}/doc</code> folder and should contain the following:</p>
+
+<ul>
+<li>
+<p>A Doxygen documentation of the library source code can be generated by going to the <code>doc</code> subfolder and running <code>doxygen</code> from there:</p>
+
+<pre><code>cd ${DIST_PATH}/doc
+doxygen .
+</code></pre>
+
+<p>The generated documentation can be viewed with any browser (e.g. by running <code>firefox html/index.html</code>).</p>
+</li>
+<li><p>A scientific article describing the purpose of and main algorithms in DICE and ColdICE (<code>article.pdf</code>). Please reference the published version of this article if you make use of result obtained with this piece of software.</p></li>
+<li>A <code>VTK_file_formats.pdf</code> file containing a description of the output files format. See also <a href="http://www.vtk.org/Wiki/VTK_XML_Formats">http://www.vtk.org/Wiki/VTK_XML_Formats</a> for complementary informations.</li>
+<li>This documentation in PDF format</li>
+</ul>
+
+<h1>
+<a id="iii-vlasov-poisson-solvers-coldice_xd" class="anchor" href="#iii-vlasov-poisson-solvers-coldice_xd" aria-hidden="true"><span class="octicon octicon-link"></span></a>(III) Vlasov-Poisson solvers: <code>coldice_xD</code>
+</h1>
+
+<h2>
+<a id="running" class="anchor" href="#running" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running:</h2>
+
+<p>Parameters for <code>coldice</code> programs can be specified directly on the command line preceded by a <code>-</code> marker or directly from a parameter file, in which case the parameter file name must be specified as the first argument, without <code>-</code> marker. They generaly take the form <code>&lt;section&gt;.&lt;parameter&gt;</code> and each parameter can accept one or more arguments, separated by spaces. If a given parameter is not specified, it is given a default value. Information on available parameters, their meaning  and default values can be obtained by running:</p>
+
+<pre><code>coldice_nD -help
+</code></pre>
+
+<p>or by consulting the appropriate section of this manual. Note however that the list of options given by running the code may be more up-to-date, and it might be convenient to save this documentation to a file by running:</p>
+
+<pre><code>coldice_nD -help &gt; parametersDoc.txt
+</code></pre>
+
+<p>A typical output will take the form of a list of alphabetically ordered parameters:</p>
+
+<pre><code>(...)
+Category: 'mesh'
+ -&gt;  mesh.allocFactor = 1
+   What fraction of the current number of element to reallocate when a pool is full.
+
+ -&gt;  mesh.delta[0] = 2
+     mesh.delta[1] = 2
+     mesh.delta[2] = 0
+     mesh.delta[3] = 0
+   Size of the initial bounding box
+
+ -&gt;  mesh.initPartitionTolerance = 1.01
+   Tolerance on the load balance of the initial partition
+(...)
+</code></pre>
+
+<p>In this particular example of the 2D version, a parameter <code>-mesh.delta</code> that sets the physical size of the initial bounding box is shown to take four arguments at most with default values 2, 2, 0, and 0. New values (e.g. a size of 1 instead of 2) can be specified on the command line as follows:</p>
+
+<pre><code>coldice_2D -mesh.delta 1 1
+</code></pre>
+
+<p>where the unspecified remaining two parameter values will take the default value 0.</p>
+
+<p>Note that <code>-help</code> option lists only the options available with default parameters and specifying some parameters may unlock new available parameters. For instance, the option <code>-init.type</code> specifies the initial conditions type and has default value <code>sineWaves</code> with following options:</p>
+
+<pre><code>Category: 'init'
+ -&gt;  init.amplitude[0] = 0.2
+     init.amplitude[1] = 0.2
+   Amplitude of the sine waves
+
+ -&gt;  init.nWaves = 1
+   Number of waves along each dimensions
+
+ -&gt;  init.shift[0] = 1
+     init.shift[1] = 1
+   Sine wave coordinates shift in [0,1]
+
+ -&gt;  init.velFactor[0] = 0
+     init.velFactor[1] = 0
+   Velocity to displacement ratio
+
+ -&gt;  init.velVector[0] = 0
+     init.velVector[1] = 0
+   Global velocity vector
+</code></pre>
+
+<p>Changing <code>-init.Type</code> to <code>cosmo</code> will change these options, which can be unveiled by running <code>coldice_2D -init.Type cosmo -help</code> :</p>
+
+<pre><code>Category: 'init'
+ -&gt;  init.fileName = ics_gadget.dat
+   Gagdet file name (without .N extension for multiple files).
+
+ -&gt;  init.initTesselationType = ANY
+   Topology of the initial grid simplicial tesselation (ALTERNATE,ANY,MINIMAL,REGULAR,USER_DEFINED)
+
+ -&gt;  init.maxMemPerNode = 1
+   The maximum amount of memory to use on each MPI node, expressed in GigaBytes.
+
+ -&gt;  init.rowMajor = 1
+   Use row major particle ordering if true (i.e. index of particle changes faster with X coordinate). Default is rowMinor.
+</code></pre>
+
+<p>Note that a summary of the parameter values that will be used for the current run is always given at the end of the output message. A complete list of available parameters is given at the end of this section.</p>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<p>A few sample parameters defining initial conditions used in the scientific article <code>doc/ColDICE.pdf</code> are given int he <code>ini/</code> sub directory:</p>
+
+<ul>
+<li>
+<code>chaos.ini</code>: Evolution of a small square patch in a 2D static chaotic potential (this must be ran with <code>coldiceStatic_2D</code>).</li>
+<li>
+<code>sineWaves.ini</code>: Cosmological collapse of two orthogonal sinusoidal waves.</li>
+<li>
+<code>cosmo.ini</code>: Simulation of structure formation in a Warm dark matter universe (20 h-1 Mpc scale). A sample script used to run this example over 768 cores is available in <code>scripts/run_cosmo_occigen</code>. The initial condition file can be generated using <a href="https://people.phys.ethz.ch/%7Ehahn/MUSIC/">MUSIC</a> with the parameter file <code>ini/cosmo.music</code>. </li>
+<li>
+<code>sineWaves_lowRes.ini</code>: A low resolution version of <code>sineWaves.ini</code> to run on a desktop computer, with regular outputs.</li>
+</ul>
+
+<p>The last example (<code>sineWaves_lowRes.ini</code>) in particular can be ran on a modest workstation as follows:</p>
+
+<pre><code>    coldice_2Dp sineWaves_lowRes.ini -solver.nThreads N -solver.outputDir Dir
+</code></pre>
+
+<p>With <code>N</code> the number of openMP threads to use and <code>Dir</code> the name of the ouput directory where files will be created (pay attention to the fact that this directory must exist prior to running the code). The program should run for up to a few minutes and produce a bunch of output files that can be visualized with <a href="http://www.paraview.org/" title="Paraview">Paraview</a> (<a href="http://www.paraview.org">http://www.paraview.org</a>).  </p>
+
+<p>Note that the phase-space sheet files need to be un-periodized and converted to the <code>vtu</code> format first, which can be done with the following command:</p>
+
+<pre><code>    for i in *.NDnet; do netconv $i -unperiodize -to vtu; done
+</code></pre>
+
+<h2>
+<a id="output-files" class="anchor" href="#output-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Output files</h2>
+
+<p>There are four types of output files :</p>
+
+<ul>
+<li>
+<code>dump</code> files:<br>
+Outputs of the current state of the unstructured mesh or projected density / potential in a VTK format readable by paraview or convertible to such a format using <code>netconv</code>. The VTK file formats description is available in <code>${DIST_PATH}/doc/VTK_file_formats.pdf</code> (see also <a href="http://www.vtk.org/Wiki/VTK_XML_Formats">http://www.vtk.org/Wiki/VTK_XML_Formats</a>). The <code>.NDnet</code> <a href="http://www2.iap.fr/users/sousbie/web/html/indexceff.html?post/NDnet-format" title="NDnet format">format specifications</a> is available at the following URL: <a href="http://www2.iap.fr/users/sousbie/web/html/indexceff.html?post/NDnet-format">http://www2.iap.fr/users/sousbie/web/html/indexceff.html?post/NDnet-format</a>
+</li>
+<li>
+<code>restart</code> files (<code>.rst</code>):<br>
+Files used to restart runs, see the following section.</li>
+<li>
+<code>statistics.txt</code>:<br>
+Contains statistics about the current run such as kinetic and potential energy, time step by time step (see header)</li>
+<li>
+<code>timings.txt</code>:<br>
+Timings of several subparts of the computation during the current run. One file is created for each MPI process in the <code>timings</code> subdirectory. The meaning of each column is given in the header.</li>
+</ul>
+
+<h2>
+<a id="restarting-jobs" class="anchor" href="#restarting-jobs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Restarting jobs</h2>
+
+<p>Restart files are produced at regular intervals specified by option <code>-solver.restartEvery &lt;N&gt;</code>. These restart files can be used to restart a job from were it was stopped with option <code>-restart &lt;file name without .rst extension&gt;</code>. When restarting a job, some parameters may be modified such as the resolution of the grid over which the potential is computed but other are forced to take values given in the initial run such as the mesh resolution. A summay of the "managed" parameters values that will be used for the current run is always given as a header in the output of <code>coldice</code> before starting computations.</p>
+
+<h2>
+<a id="parameters-description" class="anchor" href="#parameters-description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Parameters description</h2>
+
+<p>An up-to-date list of parameters can be obtained using the <code>-help</code> option, by running <code>coldice_xD -help</code> (see list heareafter). Depending on the selected options, new options may be unlocked, these new options can also be listed by running a similar command line of the form <code>coldice_xD -mycategory.myoption -help</code>. A list of options given by the command <code>coldice_xD -help</code> at the moment this documentation was written follows:</p>
+
+<pre><code> Category: 'cosmology'
+ -&gt;  cosmology.h0 = 1
+   Hubble parameter (h0 = H0 / 100 kms-1 Mpc-1)
+
+ -&gt;  cosmology.oB = 0
+   Baryonic matter fraction (already included in oM)
+
+ -&gt;  cosmology.oL = 0
+   Cosmological constant fraction
+
+ -&gt;  cosmology.oM = 1
+   Matter fraction
+
+ -&gt;  cosmology.w = -1
+   Equation of state for dark energy
+
+ Category: 'default'
+ -&gt;  debug = 0
+   Set for debug mode (value 0 to 2)
+
+ -&gt;  debugHook = 0
+   Starts an infinite loop on startup to allow hooking a debugger
+
+ -&gt;  debugWait = 0
+   Wait for N seconds on startup to allow attaching a debugger
+
+ -&gt;  globalLogDir = 
+   The directory where the global log is created
+
+ -&gt;  globalLogFName = globalLog
+   The name of the global log file
+
+ -&gt;  ignoreUnusedParams = 0
+   Do not exit when encountering unknown params
+
+ -&gt;  initOnly = 0
+   Just initialize, report, and exit
+
+ -&gt;  noGlobalLog = 0
+   Set to prevent creation of a global log
+
+ -&gt;  restart = 
+   The name of a restart file  
+   (without the '.rst' or '_${RANK}.rst'(MPI) extension)
+
+ -&gt;  threads_per_node = -1
+   The number of openMP threads to use per MPI node (auto set if negative)
+
+ -&gt;  verbose = 3
+   Verbosity level (from 0=quiet to 4=debug)
+
+ Category: 'dump'
+ -&gt;  dump.amrAt = 
+   Sets AMR grid file dumps time interval (fmt: 'start:stop:every').
+
+ -&gt;  dump.amrEvery = 0
+   Sets AMR grid file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+
+ -&gt;  dump.causticsAt = 
+   Sets caustics surface sub-mesh file dumps time interval. 
+   Format is 'start:stop:every'.
+
+ -&gt;  dump.causticsEvery = 0
+   Sets caustics surface sub-mesh file dumps time-steps interval. 
+   Dump every N timesteps, never if N negative or 0.
+
+ -&gt;  dump.densityAt = 
+   Sets density grid file dumps time interval (fmt: 'start:stop:every').
+
+ -&gt;  dump.densityEvery = 0
+   Sets density grid file dumps time-steps interval.
+   Dump every N timesteps, never if N negative or 0.
+
+ -&gt;  dump.densityProfileCenter[0] = 0
+     dump.densityProfileCenter[1] = 0
+   The coodinates of the density profile center. Only used if 
+   specifyProfileCenter is set.
+
+ -&gt;  dump.linesAt = 
+   Sets lagrangian 1D lines sub-mesh file dumps time interval
+   (fmt: 'start:stop:every').
+
+ -&gt;  dump.linesEvery = 0
+   Sets lagrangian 1D lines sub-mesh file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+ -&gt;  dump.meshAt = 
+   Sets mesh file dumps time interval (fmt: 'start:stop:every').
+
+ -&gt;  dump.meshEvery = 0
+   Sets mesh file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+ -&gt;  dump.potentialAt = 
+   Sets potential grid file dumps time interval 
+   (fmt: 'start:stop:every').
+
+ -&gt;  dump.potentialEvery = 0
+   Sets potential grid file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+ -&gt;  dump.radialGridDensityAt = 
+   Sets radial density profile from grid file dumps time interval 
+   (fmt: 'start:stop:every').
+
+ -&gt;  dump.radialGridDensityEvery = 0
+   Sets radial density profile from grid file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+ -&gt;  dump.radialMeshDensityAt = 
+   Sets radial density profile from mesh file dumps time interval 
+   (fmt: 'start:stop:every').
+
+ -&gt;  dump.radialMeshDensityEvery = 0
+   Sets radial density profile from mesh file dumps time-steps interval 
+   (dump every N timesteps, never if N negative or 0).
+
+ -&gt;  dump.reset = 0
+   Set this parameters to reset any default file dumps 
+   (i.e. reset dumps programmed from restart file)
+
+ -&gt;  dump.specifyProfileCenter = 0
+   Profile is centered on the center of the bounding box if false, or use user specified 
+   coordinates if true (see densityProfileCenter)
+
+ -&gt;  dump.subsetsAt = 
+   Sets mesh subsets file dumps time interval (fmt: 'start:stop:every').
+
+ -&gt;  dump.subsetsEvery = 0
+   Sets mesh subsets file dumps time-steps interval (dump every N timesteps, never if N negative or 0).
+
+ Category: 'glbDebug'
+ -&gt;  glbDebug.meshRefine = 0
+   Set to debug mesh refinement.
+
+ Category: 'init'
+ -&gt;  init.type = sineWaves
+   The type of initial condition: uniformGrid, sineWaves, phasedWave, cosmo, composite
+   Each type of initial condition is associated to a different set of parameters in the 'init' section
+   listed by running `coldice_xD -init.type TYPE -help`. The following parameters are for 'sineWaves'
+   initial conditions type.
+
+ -&gt;  init.amplitude[0] = 2
+     init.amplitude[1] = 2
+   Amplitude of the sine waves
+
+ -&gt;  init.cosmo = 1
+   Whether to use cosmology
+
+ -&gt;  init.delta[0] = 1
+     init.delta[1] = 1
+     init.delta[2] = 0
+     init.delta[3] = 0
+   Size of the initial mesh
+
+ -&gt;  init.initTesselationType = ANY
+   Topology of the initial grid simplicial tesselation (ALTERNATE,ANY,MINIMAL,REGULAR,USER_DEFINED)
+
+ -&gt;  init.resolution[0] = 64
+     init.resolution[1] = 64
+   Resolution of the initial mesh (in pixels before tesselation)     
+
+ -&gt;  init.x0[0] = -0.5
+     init.x0[1] = -0.5
+     init.x0[2] = 0
+     init.x0[3] = 0
+   Initial coordinates of the mesh lower left corner
+
+
+ Category: 'mesh'
+ -&gt;  mesh.allocFactor = 1
+   What fraction of the current number of element to reallocate when a pool is full.
+
+ -&gt;  mesh.delta[0] = 1
+     mesh.delta[1] = 1
+     mesh.delta[2] = 0
+     mesh.delta[3] = 0
+   Size of the bounding box
+
+ -&gt;  mesh.initPartitionTolerance = 1.01
+   Tolerance on the load balance of the initial partition
+
+ -&gt;  mesh.initPartitionType = KWAY
+   The method to use for initial partitionning (KWAY,PH,PH_KWAY)
+
+ -&gt;  mesh.refinePartitionType = ADAPTIVE
+   The method to use for repartitionning (ADAPTIVE,KWAY,PH,REFINE_KWAY)
+
+ -&gt;  mesh.repartThreshold = 1.15
+   Inbalance factor that triggers repartitionning
+
+ -&gt;  mesh.repartTolerance = 1.01
+   Tolerance on the load balance after repartitionning
+
+ -&gt;  mesh.x0[0] = -0.5
+     mesh.x0[1] = -0.5
+     mesh.x0[2] = 0
+     mesh.x0[3] = 0
+   Initial coordinates of the bounding box lower left corner
+
+ Category: 'projection'
+ -&gt;  projection.accuracyLevel = 0.001
+   Required accuracy level for projection (DISABLED). 
+   Use D_ENABLE_ACCURACY_CHECKING compile time option to enable.
+
+ -&gt;  projection.anisotropyThreshold = 1e+06
+   The simplex anisotropy threshold up to which exact projection is used 
+   (expressed as the maximum to minimum simplex extent ratio)
+
+ -&gt;  projection.enableHRModeThreshold = 0
+   Fraction of the simplices that are allowed to be reprojected before definitively switching to high 
+   resolution projection mode (between 0 and 1, negative number=&gt;always).
+
+ -&gt;  projection.resetHRMode = 0
+   Ignore whether high resolution mode was set on a previous run and set it to false. 
+   This is only meaningfull when restarting a run.
+
+ -&gt;  projection.useVerticesThreshold = -1
+   Minimum refinement level of a simplex above which its vertices are used to project it instead of 
+   exact integration. This should be equal to either '-1' or the value of 'solver.maxSimplexLevel'.
+
+ -&gt;  projection.widthThreshold = 1e-07
+   The width of an element, expressed as a fraction of the bounding box size, down to which 
+   exact projection is used.
+
+ Category: 'solver'
+ -&gt;  solver.aEnd = 1
+   Final value of the scale factor
+
+ -&gt;  solver.aStart = 0.01
+   Initial value of the scale factor
+
+ -&gt;  solver.cflCondition = CFL_RHOMAX
+   CFL condition type (CFL,CFL_RHOMAX,NONE,RHOMAX)
+
+ -&gt;  solver.cflGrid = 0.25
+   Value of the CFL condition (fraction of a FFT grid pixel size)
+
+ -&gt;  solver.cflRhoMax = 0.01
+   Value of the maximum density condition (fraction of an orbit size)
+
+ -&gt;  solver.checkProjectedDensity = 1
+   Check the positivity of the projected density (also look for NaN values).
+
+ -&gt;  solver.coarsenEvery = 1
+   Force coarsening every N timesteps
+
+ -&gt;  solver.coarsenHysteresis = 0.95
+   NOT used
+
+ -&gt;  solver.cosmo = 1
+   Use cosmological expansion ?
+
+ -&gt;  solver.dLogA = 0.1
+   Maximum value for d(log(a))=da/a.
+
+ -&gt;  solver.dumpInitialMesh = 0
+   Dump the mesh right after creating the initial conditions.
+
+ -&gt;  solver.dumpRestartSignalFileName = DUMP_RESTART
+   The name of the file to create in the output directory in order to force the creatioàn of a restart 
+   file on next time step.
+
+ -&gt;  solver.exportFftWisdom = wisdom.fftw
+   The name of a file to which the acquired FFTW wisdom will be exported. Set to 'SKIP' or 'skip' to 
+   prevent exportation.
+
+ -&gt;  solver.fastAmrBuild = 1
+   If true, refine the AMR grid so that it only fits roughly the resolution of the mesh. This is 
+   probably always good enough and much faster ...
+
+ -&gt;  solver.fftGridLevel = 8
+   Size of the FFT grid used for the Poisson solver (effective size is 2^fftGridLevel)
+
+ -&gt;  solver.fftWisdom = 1
+   Which level of FFTWISDOM to use, in the range {0,1,2,3}={ESTIMATE,MEASURE,PATIENT,EXHAUSTIVE}. 
+   The higher the faster, but the slower the initialization ...
+
+ -&gt;  solver.importFftWisdom = wisdom.fftw
+   The name of a file from which FFTW wisdom will be imported. Set to 'SKIP' or 'skip' to 
+   prevent importation.
+
+ -&gt;  solver.invariantThreshold = 1e-05
+   Poincare invariant threshold to trigger refinement
+
+ -&gt;  solver.mass = 1
+   Initial total mass
+
+ -&gt;  solver.maxAmrLevel = 8
+   Maximum refinement level of the AMR grid (don't touch that, it's already set ;) )
+
+ -&gt;  solver.maxSimplexLevel = -1
+   Maximum level of refinement a simplex is allowed to reach.
+   (-1  for no maximum, unrefined simplices have level 0)
+   See also 'projection.useVerticesThreshold'.
+
+ -&gt;  solver.nThreads = 4
+   The number of threads to use per process. This parameter will override the default 'threads_per_node' 
+   parameter and will be saved from one run to another.
+
+ -&gt;  solver.noCoarsen = 1
+   Set to prevent mesh coarsening
+
+ -&gt;  solver.noRefine = 0
+   Set to prevent mesh refinement
+
+ -&gt;  solver.noRepartWeight = 1
+   If true, MPI regions weight is directly proportional to the number of simplices.
+
+ -&gt;  solver.noRestart = 0
+   Set to prevent from dumping any restart file.
+
+ -&gt;  solver.outputDir = 
+   The directory where all files will be put (default is './', directory must exist)
+
+ -&gt;  solver.phSortThreshold = 0.05
+   Maximum allowed ratio of randomly distributed to ordered cells before triggering a Peano-Hilbert 
+   sort of the local meshes.
+
+ -&gt;  solver.projectionOrder = 1
+   Order of the exact mass projection (only 0 and 1 are implemented so far)
+
+ -&gt;  solver.rebuildAmrEvery = 1
+   How many timestep to wait before entirely rebuilding the AMR grids. 
+   (IGNORED : not implemented yet!)
+
+ -&gt;  solver.refineThreshold = 3
+   NOT used
+
+ -&gt;  solver.resimulate = 0
+   Set to start a resimulation after the simulation completes
+
+ -&gt;  solver.resimulateEvery = 0
+   Not implemented
+
+ -&gt;  solver.restartEvery = 50
+   Write a restart file every N timestep (no restart is written if N negative or 0)
+
+ -&gt;  solver.skipInitialPoisson = 1
+   Skips the pre-solving of poisson equation for when the CFL conditon is set to CFL_RHOMAX. 
+   Instead, measure initial RHOMAX directly on the sheet.
+
+ -&gt;  solver.splitLongestEdge = 0
+   Set to split the longest longest edge when refining instead of trying to minimize the invariant
+
+ -&gt;  solver.squeezeMesh = 0
+   You don't want to know ;)
+
+ -&gt;  solver.statisticsFileName = statistics.txt
+   The name of the file where statistics will be stored
+
+ -&gt;  solver.stopSignalFileName = STOP
+   The name of the file to create in the output directory in order to cleanly stop the run.
+
+ -&gt;  solver.symmetry = NONE
+   Type of symmetry to enforce.
+   (AXIAL0,AXIAL01,AXIAL012,AXIAL02,AXIAL1,AXIAL12,AXIAL2,CENTRAL,CONSTANT0,CONSTANT1,CONSTANT2,NONE,
+   PLANAR0,PLANAR01,PLANAR012,PLANAR02,PLANAR1,PLANAR12,PLANAR2)
+   THIS OPTION DOES NOT WORK PROPERLY WITH MPI YET !
+
+ -&gt;  solver.timeLimit = -1
+   CPU time limit (in hours, will stop before spending it). This is an exact limit (negative for no limit). 
+   See also timeLimitSafety
+
+ -&gt;  solver.timeLimitSafety = 0.95
+   Fraction of the timeLimit while it is safe to keep computing. Leaves (1-timeLimitSafety)*timeLimit 
+   for writing the restart file.
+
+ -&gt;  solver.timingsFileName = timings.txt
+   The name of the file where timings will be stored
+
+ -&gt;  solver.volumeThreshold = 1e+10
+   Volume threshold to trigger refinement (NOT used)
+
+ Category: 'units'
+ -&gt;  units.H = 1
+   Hubble parameter (default value in s-1).
+
+ -&gt;  units.length = 1
+   Length unit expressed in meters (default: -).
+
+ -&gt;  units.mass = 1
+   Mass unit expressed in meters (default: -).
+
+ -&gt;  units.velocity = 1
+   Velocity unit expressed in meters (default: -).
+</code></pre>
+
+<h2>
+<a id="initial-conditions" class="anchor" href="#initial-conditions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initial conditions</h2>
+
+<p>There are currently 5 types of initial conditions implemented in the code. Additionally to these initial conditions, it should be relatively easy to implement your own. If you want to do so, check the <code>IC_dummy.hxx</code> file provided in the <code>${DICE_DIR}/solvers/ColDICE/init/</code> directory.  </p>
+
+<p>Currently implemented initial conditions are:</p>
+
+<ul>
+<li>
+<code>uniformGrid</code>: A flat uniform grid that can be advected by a static potential.</li>
+<li>
+<code>sineWaves</code>: Two orthogonal sinusoidal overdensities. Can be used with physical or cosmological conditions.</li>
+<li>
+<code>phasedWaves</code>: A distorted plane wave. Can be used with physical or cosmological conditions</li>
+<li>
+<code>cosmo</code>: cosmological initial conditions read from a <code>gadget</code> type file as generated e.g. with MUSIC (<a href="https://people.phys.ethz.ch/%7Ehahn/MUSIC/">https://people.phys.ethz.ch/~hahn/MUSIC/</a>)</li>
+<li>
+<code>composite</code>: the composition of several grids for simulating e.g. interacting objects. This is quite rudimentary at the moment !</li>
+</ul>
+
+<p>Specific parameters are associated to each type of initial conditions. The following list was obtained by running <code>coldice_xD -init.type &lt;TYPE&gt; -help</code>:    </p>
+
+<p><code>TYPE=cosmo</code>: </p>
+
+<pre><code> -&gt;  init.fileName = ics_gadget.dat
+   Gagdet file name (without .N extension for multiple files).
+
+ -&gt;  init.initTesselationType = ANY
+   Topology of the initial grid simplicial tesselation 
+   (ALTERNATE,ANY,MINIMAL,REGULAR,USER_DEFINED)
+
+ -&gt;  init.maxMemPerNode = 1
+   The maximum amount of memory to use on each MPI node, expressed in GigaBytes.
+   Default is 1GB per node.
+
+ -&gt;  init.rowMajor = 1
+   Use row major particle ordering if true (i.e. index changes faster with X coordinate). 
+   Default is rowMajor.
+
+ -&gt;  init.x0[0] = 0
+     init.x0[1] = 0
+   Position of the lower left corner of the box
+</code></pre>
+
+<p><code>TYPE=sineWaves</code>: </p>
+
+<pre><code> -&gt;  init.amplitude[0] = 2
+     init.amplitude[1] = 2
+   Amplitude of the sine waves
+
+ -&gt;  init.cosmo = 1
+   Whether to use cosmology
+
+ -&gt;  init.delta[0] = 1
+     init.delta[1] = 1
+     init.delta[2] = 0
+     init.delta[3] = 0
+   Size of the initial mesh
+
+ -&gt;  init.initTesselationType = ANY
+   Topology of the initial grid simplicial tesselation 
+   (ALTERNATE,ANY,MINIMAL,REGULAR,USER_DEFINED)
+
+ -&gt;  init.resolution[0] = 64
+     init.resolution[1] = 64
+   Resolution of the initial mesh (in pixels before tesselation)
+
+ -&gt;  init.x0[0] = -0.5
+     init.x0[1] = -0.5
+     init.x0[2] = 0
+     init.x0[3] = 0
+   Initial coordinates of the mesh lower left corner
+</code></pre>
+
+<p><code>TYPE=phasedWaves</code></p>
+
+<pre><code> -&gt;  init.aCross = 0.15
+   Time of first shell crossing
+
+ -&gt;  init.delta[0] = 100
+     init.delta[1] = 100
+     init.delta[2] = 0
+     init.delta[3] = 0
+   Size of the initial mesh
+
+ -&gt;  init.epsilon = 0.5
+
+ -&gt;  init.initTesselationType = ANY
+   Topology of the initial grid simplicial tesselation 
+   (ALTERNATE,ANY,MINIMAL,REGULAR,USER_DEFINED)
+
+ -&gt;  init.k = 1
+   Perturbation parameter
+
+ -&gt;  init.kp = 1
+   Plane wave parameter
+
+ -&gt;  init.resolution[0] = 64
+     init.resolution[1] = 64
+   Resolution of the initial mesh (in pixels before tesselation)
+
+ -&gt;  init.x0[0] = 0
+     init.x0[1] = 0
+     init.x0[2] = 0
+     init.x0[3] = 0
+   Initial coordinates of the mesh lower left corner
+</code></pre>
+
+<p><code>TYPE=composite</code>: </p>
+
+<pre><code> -&gt;  init.add = none
+   The type of component to add (only 'box' is available now) . Can be called several times ...
+
+ -&gt;  init.bBoxDelta[0] = 2
+     init.bBoxDelta[1] = 2
+     init.bBoxDelta[2] = 0
+     init.bBoxDelta[3] = 0
+   Size of the bounding box
+
+ -&gt;  init.bBoxX0[0] = -1
+     init.bBoxX0[1] = -1
+     init.bBoxX0[2] = 0
+     init.bBoxX0[3] = 0
+   Initial coordinates of the bounding box lower left corner
+</code></pre>
+
+<h1>
+<a id="iv-solvers-post-reatment-from-restart-files-coldicepost_xd" class="anchor" href="#iv-solvers-post-reatment-from-restart-files-coldicepost_xd" aria-hidden="true"><span class="octicon octicon-link"></span></a>(IV) Solvers post-reatment from restart files: <code>coldicePost_xD</code>
+</h1>
+
+<p><code>coldicePost_xD</code> programs are similar to the <code>coldice_xD</code> ones but are adapted to the post-treatment of restart files produced by <code>coldice_xD</code>. They work exactly the same as coldice programs and take the same arguments as <code>coldice_xD</code> plus a few additional ones in the "post" section (i.e. of the form <code>post.&lt;option&gt;</code>). This program is typically run as:</p>
+
+<pre><code>coldicePost_xD -restart &lt;FILENAME without `_XXXX.rst` extension&gt; -post.option...
+</code></pre>
+
+<p>and all options available in the <code>post</code> section can be listed  by running <code>coldicePost_xD -help</code>:</p>
+
+<pre><code> Category: 'post'
+ -&gt;  post.dumpAmr = 0
+   Whether to dump AMR files.
+
+ -&gt;  post.dumpDensity = 0
+   Whether to dump density grid files
+
+ -&gt;  post.dumpMesh = 0
+   Whether to dump the unstructured mesh files
+
+ -&gt;  post.dumpRadialGridDensity = 0
+   Whether to dump the radial grid density (from projected grid)
+
+ -&gt;  post.dumpRadialMeshDensity = 0
+   Whether to dump the radial mesh density (from the mesh)
+
+ -&gt;  post.dumpSubmesh = 0
+   Whether to dump the unstructured mesh subsets files
+
+ -&gt;  post.gridLevel = 8
+   Sets the resolution of the density grid
+
+ -&gt;  post.projectionOrder = 1
+   Order of the exact mass projection (0 or 1)
+
+ -&gt;  post.radialMeshDensitySamples = 10
+   The number of samples to use per overlap for radial mesh density computation
+
+ -&gt;  post.refineMesh = 0
+   Refine the mesh using tracers.
+</code></pre>
+
+<h1>
+<a id="v-static-potential-vlasov-poisson-solvers-coldicestatic_xd" class="anchor" href="#v-static-potential-vlasov-poisson-solvers-coldicestatic_xd" aria-hidden="true"><span class="octicon octicon-link"></span></a>(V) Static potential Vlasov-poisson solvers: <code>coldiceStatic_xD</code>
+</h1>
+
+<p><code>coldiceStatic_xD</code> programs are similar to <code>coldice_xD</code> ones but work with a static potential for which an analytic solution is known. They work exactly the same as coldice programs and take the same arguments plus a few additional ones in the <code>staticSolver</code> section (i.e. of the form <code>staticSolver.&lt;option&gt;</code>). These parameters can also be listed with the "-help" option :</p>
+
+<pre><code>Category: 'staticSolver'
+  -&gt;  staticSolver.gravitationalMass = 1
+    Total mass generating the static potential
+
+  -&gt;  staticSolver.potential = PLUMMER
+    Static potential type (CHAOTIC,PLUMMER,UDF)
+</code></pre>
+
+<p>and a few parameters are associated to each type of potential, listed in the <code>potential</code> section. For instance, the parameters associated to the <code>CHAOTIC</code> potential are obtained by runnning <code>coldiceStatic_xD -staticSolver.potential CHAOTIC -help</code>:</p>
+
+<pre><code>Category: 'potential'
+  -&gt;  potential.Rc = 0.2
+    Central radius
+
+  -&gt;  potential.epsilon = 0.5
+    Perturbation amplitude (epsilon=0 -&gt; regular orbits)
+
+  -&gt;  potential.q = 0.9
+    Excentricity
+</code></pre>
+
+<h1>
+<a id="vi-unstructured-mesh-output-files-manipulation--netconv" class="anchor" href="#vi-unstructured-mesh-output-files-manipulation--netconv" aria-hidden="true"><span class="octicon octicon-link"></span></a>(VI) Unstructured mesh output files manipulation : <code>netconv</code>
+</h1>
+
+<p>netconv is used to converted unstructured mesh outputs in <code>.NDnet</code> format to other formats and/or unperiodizing the mesh for visualization. A short documentation can be obtained by running <code>netconv -help</code>, and it is typically used to convert files to the <code>vtu</code> format that can be visualized with <code>paraview</code> :</p>
+
+<pre><code>netconv &lt;NDnet filename&gt; [-unperiodize] -to vtu
+</code></pre>
+
+<p>where the <code>unperiodize</code> option can be specified to explicitly break periodic boundary conditions that would otherwise produce visual artefacts.</p>
+
+<h1>
+<a id="vii-troubleshooting" class="anchor" href="#vii-troubleshooting" aria-hidden="true"><span class="octicon octicon-link"></span></a>(VII) Troubleshooting</h1>
+
+<ul>
+<li><p>An MPI run crashes at "Gathering potential ..."<br>
+This may be a MPI configuration problem, if you are using openMPI, try setting <code>export OMPI_MCA_mpi_leave_pinned=0</code>, or try finding an equivalent option for your MPi implementation.</p></li>
+<li><p>You get the "Negative or NaN values found for the projected mass in xxx voxel(s)." ERROR (not the WARNING), followed by a message saying there may be a bug, and the code stops.<br>
+If you are using an Intel compiler, you must compile libQD with the <code>-fp-model precise</code> flag enabled (DICE solvers should automatically have it, check the compile flags to make sure). If you get this message only once or twice in a very long MPI run, and the code does not stop, don't worry, the code is running fine.</p></li>
+<li><p>You get an error message at startup saying "This MPI implementation does not support any type of multithreading".<br>
+If you are using the Intel compiler, you must add the <code>-mt_mpi</code> compile flag to enable a minimal level of multithreading capability (use <code>-DCXX_FLAGS_EXTRA="-mt_mpi"</code> option with cmake)</p></li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/thierry-sousbie/dice">Dice</a> is maintained by <a href="https://github.com/thierry-sousbie">thierry-sousbie</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-67548297-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
