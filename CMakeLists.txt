@@ -85,7 +85,6 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 #SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-msse2 -mavx -g -Wa,-adhls -save-temps")
 #SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Q -v -DFORTIFY_SOURCE=2 ")
 #SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -std=c++0x -mavx")
-#SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -g -Wall")# -vec-report")
 
 #SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -g -Wall -Wshadow -fno-common -ansi -pedantic -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings")
 
