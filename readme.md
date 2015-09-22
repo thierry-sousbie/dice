@@ -27,7 +27,7 @@ In particular, the following features are implemented in DICE so far:
    * MPI distributed regular grids with support for complex iterators, various interpolation kernels and high order quadratures.
    * Many other things ...
 
-Learn more about DICE and ColDICE by reading this [scientific article](https://github.com/thierry-sousbie/dice/blob/master/doc/article.pdf) or by visiting the [VLASIX project](http://www.vlasix.org/index.php?n=Main.ColDICE "VLASIX") website: http://www.vlasix.org/index.php?n=Main.ColDICE
+Learn more about DICE and ColDICE by reading this [scientific article](http://www2.iap.fr/users/sousbie/dice.pdf) or by visiting the [VLASIX project](http://www.vlasix.org/index.php?n=Main.ColDICE "VLASIX") website: http://www.vlasix.org/index.php?n=Main.ColDICE
 
 
 (I) Installation
