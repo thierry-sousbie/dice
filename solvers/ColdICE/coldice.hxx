@@ -85,7 +85,6 @@ public:
   //typedef long double IFloat; // Used for projection (for regular computations)  
   //typedef long double SFloat; // Used for projection (for summing contributions)  
   //typedef dice::DoubleDouble HFloat; // Used for projection only (high precision)
-
   //typedef dice::Float128OrMore HFloat; // This is twice slower and slightly more precise
   //typedef dice::QuadDouble HFloat; // Extremely high precision !
 
@@ -124,8 +123,6 @@ public:
   typedef typename MeshAndTracersCoords::iterator MeshAndTracersCoords_iterator;
 
   typedef typename Simplex::Neighborhood SimplexNeighborhood;
-
-  //typedef dice::BarycentricCoordinatesT<D,double,GeometricProperties> BarycentricCoordinates;
 
   static const int NDIM          = Simplex::NDIM;
   static const int NDIM_W        = Simplex::NDIM_W;
@@ -567,87 +564,52 @@ public:
   {   
     int ret;
 
-    // printf("-> Refining simplex %ld (was %e).\n",
-    // 	   (long)s->getLocalIndex(),oldVal);
-    /*
-    double oldVal = 
-      dice::slv::refine::poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first;
-    */
-    /*
-    CheckRefineReturnType ret=
-      dice::slv::refine::poincareInvariantFromSegTracers<Mesh>(s,geometry);
-    
-    ret.first *= invariantThreshold_inv;
-    if (ret.first < 1) ret.first=0;
-     
-    if (ret.first!=0)
-    */
+    // invariant is above the threshold, this simplex should be refined !
+    if (splitLongestEdge)
       {
-	// invariant is above the threshold, this simplex should be refined !
-	if (splitLongestEdge)
+	// Just refine the longest edge ...
+	//ret = dice::slv::refine::length2<Mesh>(s,geometry).second; // Eulerian 
+	ret=dice::slv::refine::lagrangianLength2<Mesh>(s,geometry).second; // Lagrangian
+      }
+    else
+      {
+	// The function we need to minimize when splitting
+	struct Functor
+	{
+	  Functor(Mesh *m)
 	  {
-	    // Just refine the longest edge ...
-	    //ret = dice::slv::refine::length2<Mesh>(s,geometry).second;
-	    ret=dice::slv::refine::lagrangianLength2<Mesh>(s,geometry).second;
+	    geometry=m->getGeometry();
 	  }
-	else
-	  {
-	    // The function we need to minimize when splitting
-	    struct Functor
-	    {
-	      Functor(Mesh *m)
-	      {
-		geometry=m->getGeometry();
-	      }
 
-	      double operator()(Simplex *s) const
-	      {
-		return dice::slv::refine::
-		  poincareInvariantWithSegTracers_order1<Mesh>
-		  (s,geometry).first;
-	      }
-	      
-	      GeometricProperties *geometry;
-	    } functor(mesh);
-	    
-	    // Select the edge that minimize refinement criterion
-	    ret = dice::slv::refine::
-	      findSplitSegment(mesh,s,functor,invariantThreshold);
-	    
-	    // This will happen if splitting the simplex does not improve the invariant
-	    if (ret<0)
-	      {	
-		ret=dice::slv::refine::lagrangianLength2<Mesh>(s,geometry).second;
-		/*
-		dice::glb::console->print<dice::LOG_STD_ALL>
-		  ("Splitting longest edge @%ld (linear: %g, quadratic : %g)\n",
-		   (long)s->getLocalIndex(),oldVal,
-		   dice::slv::refine::poincareInvariantWithSegTracers<Mesh>(s,geometry)
-		   );	
-		*/
-	      }
-	   
-	  }
-      }
-  
-   /*
-    // Check elongation
-    if (ret.first==0) 
-      {	
-	ret = dice::slv::refine::length2<Mesh>(s,geometry,refineThreshold2,true);
-	if (ret.first>=refineThreshold2)
+	  double operator()(Simplex *s) const
 	  {
-	    ret.first *= maximumSegmentLength2_inv;
-	    if (ret.first>1) ret.first=1;
+	    return dice::slv::refine::
+	      poincareInvariantWithSegTracers_order1<Mesh>
+	      (s,geometry).first;
 	  }
-	else ret.first=0;
-      }           
-    else if (splitLongestEdge)
-      {
-	//ret = dice::slv::refine::lagrangianLength2<Mesh>(s,geometry);
-	ret.second = dice::slv::refine::length2<Mesh>(s,geometry).second;
+	      
+	  GeometricProperties *geometry;
+	} functor(mesh);
+	    
+	// Select the edge that minimize refinement criterion
+	ret = dice::slv::refine::
+	  findSplitSegment(mesh,s,functor,invariantThreshold);
+	    
+	// This will happen if splitting the simplex does not improve the invariant
+	if (ret<0)
+	  {	
+	    ret=dice::slv::refine::lagrangianLength2<Mesh>(s,geometry).second;
+	    /*
+	      dice::glb::console->print<dice::LOG_STD_ALL>
+	      ("Splitting longest edge @%ld (linear: %g, quadratic : %g)\n",
+	      (long)s->getLocalIndex(),oldVal,
+	      dice::slv::refine::poincareInvariantWithSegTracers<Mesh>(s,geometry)
+	      );	
+	    */
+	  }
+	   
       }
-    */
+   
     return ret;
   }
 
@@ -924,30 +886,30 @@ protected:
 
     // Add some data functors to the mesh (quantites that can be computed on the 
     // fly, so they can be requested at any time but do not use extra storage)
-
+    mesh->template 
+      addCellDataFunctor< dice::slv::refine::
+			  CellDataFunctor_poincareInvariantWithSegTracers_order1T >();
+    mesh->template 
+      addCellDataFunctor< ProjectedDensityFunctorT >();
+    
     /*
+      // These may be useful for debugging ...
     mesh->template 
       addCellDataFunctor< dice::slv::refine::
 			  CellDataFunctor_poincareInvariantT >();
     mesh->template 
       addCellDataFunctor< dice::slv::refine::
 			  CellDataFunctor_poincareInvariantWithSegTracersT >();
-    */
+    mesh->template 
+      addCellDataFunctor< dice::slv::refine::CellDataFunctor_lengthT >();
     mesh->template 
       addCellDataFunctor< dice::slv::refine::
-			  CellDataFunctor_poincareInvariantWithSegTracers_order1T >();
+			  CellDataFunctor_poincareInvariantBelowSegTracersCornerT >();
     mesh->template 
-      addCellDataFunctor< ProjectedDensityFunctorT >();
-
-    // mesh->template 
-    //   addCellDataFunctor< dice::slv::refine::CellDataFunctor_lengthT >();
-    // mesh->template 
-    //   addCellDataFunctor< dice::slv::refine::
-    //                       CellDataFunctor_poincareInvariantBelowSegTracersCornerT >();
-    // mesh->template 
-    //   addCellDataFunctor< dice::slv::refine::CellDataFunctor_volumeBelowT >();   
-    // mesh->template 
-    //   addCellDataFunctor< SmoothedProjectedDensityFunctorT >();    
+      addCellDataFunctor< dice::slv::refine::CellDataFunctor_volumeBelowT >();   
+    mesh->template 
+      addCellDataFunctor< SmoothedProjectedDensityFunctorT >();   
+    */
     
     // Do that only if we are not restarting from a run
     if (!restart) 
@@ -1109,12 +1071,10 @@ protected:
 
 		if (ic->useLagrangianMass())
 		  {
-		    // mass = Density * lagrangian_volume
 		    s->mass.setValue(s->mass.getValue()*density);
 		  }
 		else
 		  {
-		    // mass = Density * projected_volume
 		    s->mass.init(mesh,s,&density);
 		  }
 		
@@ -1170,7 +1130,6 @@ protected:
 	Coord c[NDIM]={0};
 	for (int i=0;i<Simplex::NVERT;++i)
 	  {
-	    //const Coord *vc=s->getVertex(i)->getCoordsConstPtr();
 	    const Coord *vc=s->getVertex(i)->initCoords.getPointer();
 	    for (int j=0;j<NDIM;++j)
 	      c[j] += vc[j];
@@ -1235,14 +1194,7 @@ protected:
     for (int i=1;i<NDIM;++i)
       if (localAmrDensity.getBBoxSize(i)>epsilon)
 	epsilon=localAmrDensity.getBBoxSize(i);
-    epsilon*=pWidthThreshold;
-    /*
-    double voxelVolume = localAmrDensity.
-      getVoxelVolume(std::max(amrLevel,10)-LocalAmrGrid::ROOT_LEVEL);
-    double volumeRatio = pow(pWidthThreshold,NDIM);
-    double volumeThreshold=voxelVolume*volumeRatio;
-    double lengthThreshold=pow(voxelVolume*volumeRatio,1.0/NDIM);
-    */
+    epsilon*=pWidthThreshold;  
     
     double volumeThreshold=pow(epsilon,double(NDIM));
     double lengthThreshold=epsilon;
@@ -1522,8 +1474,7 @@ protected:
     // For debugging purpose
     /*
     dice::PRINT_SRC_INFO(dice::LOG_WARNING);   
-    printf("DELETE ME HEREEEEEEE!");
-    // FIXME: this test fails when c[i]=0 (coord becomes ~1.E-324)
+    printf("COMMENT ME HERE !!!!\n");
 #pragma omp parallel for
     for (int j=0;j<dice::glb::num_omp_threads;j++)
       {	
@@ -1550,6 +1501,9 @@ protected:
     buildAmrGrid(maxAmrLevel);   
  
     /*
+    // Force switching to high resolution projection via file signal
+    // This requires MPI communications and is not usefull in general, kept
+    // for debugging purpose
     if (mpiCom->rank()==0)
       {
 	std::string fName=fileDumps.getOutputDir()+pSwitchHRModeFileName;
@@ -1787,11 +1741,13 @@ protected:
 
 	    PDType volume = dice::hlp::numericStaticCast<PDType>
 	      (mesh->template computeProjectedVolume<Simplex,CT>(s));
-	    
-	    // This version interpolates the metric at vertices 
-	    // This would be usefull if we could project the tesselation of the
-	    // quadratic reconstruction of the mesh instead of its raw linear version
+	    	    
 	    /*
+	    // This version interpolates the metric at vertices 
+	    // KEEP COMMENTED FOR NOW
+	    // This would only be usefull if we could project the tesselation of the
+	    // quadratic reconstruction of the mesh instead of its raw linear version
+	    
 	    double volume[Simplex::NVERT];
 	    dice::QuadraticSimplexT<NDIM,NDIM,double> 
 	      qSimplex(s,s->segTracers.getConstPointer(),geometry);
@@ -1852,7 +1808,6 @@ protected:
     }
 
 #endif
-    //dice::glb::console->print<dice::LOG_STD>("(%.3f)",updateDensityTimer->check());
 
     // compute the density at each vertex
     FOREACH_THREAD_VERTEX(mesh,nThreads,th,it)
@@ -1899,7 +1854,6 @@ protected:
 	  }
       }
     FOREACH_THREAD_END;
-    //dice::glb::console->print<dice::LOG_STD>("(%.3f)",updateDensityTimer->check());
   }
 
   double getVelocityMax()

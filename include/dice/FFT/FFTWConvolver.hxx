@@ -237,17 +237,7 @@ public:
 
     if (!quiet) glb::console->printFlush<LOG_INFO>("done.\n");
     if (!quiet) glb::console->printFlush<LOG_INFO>(" * Initializing the grid ... ");
-    /*
-    GridParams gp2 = gp;
-    if (!periodic)
-      {
-	for (int i=0;i<NDIM;++i)
-	  {
-	    gp2.delta[i]*=2;
-	    gp2.resolution[i]*=2;	    
-	  }	
-      }    
-    */ 
+  
     Slicer slicer(gp,mpiCom,numThreads,periodic,
 		  kernelFunctor.getOutputFieldsCount());    
    
@@ -380,7 +370,6 @@ public:
 
 private:
   static const int periodic = (BOUNDARY_TYPE == BoundaryType::PERIODIC);    
-  //typedef internal::FFTWFunctionsHelper<NDIM> FFTWH;
 
   int initialized(int setVal=-1)
   {
@@ -395,25 +384,7 @@ private:
     if (initialized()) return;
     
     initialized(true);
-    initializeFFTW();
-    /*
-#ifdef HAVE_FFTW3_THREADS
-
-    fftw_init_threads();
-#ifdef HAVE_FFTW3_MPI
-    fftw_mpi_init();
-#endif // HAVE_FFTW3_MPI
-
-#else // HAVE_FFTW3_THREADS
-
-#ifdef HAVE_FFTW3_MPI
-    fftw_mpi_init();
-#else // HAVE_FFTW3_MPI
-    fftw_init();
-#endif // HAVE_FFTW3_MPI
-
-#endif //HAVE_FFTW3_THREADS
-    */
+    initializeFFTW();    
   }
 
   void freePlans()
@@ -442,28 +413,7 @@ private:
       delete kernelFunctorInterface;
     kernelFunctorInterface=NULL;
   }
-
-  /*
-  long getTransformAllocFactor(OperatorType t)
-  {
-    long result;
-    // This take into account the padding when doing r2c/c2r transforms
-    //double inplaceCoef = double(1.0F+(dims[NDIM-1]/2+1)*2)/dims[NDIM-1];
-
-    switch (t)
-      {
-      case DERIVATIVES:
-      case PRIMITIVES:
-      case INVERSE_LAPLACIAN_DERIVATIVES:
-	result = NDIM;break;
-      default:
-	result = 1;
-      }
-    
-    //actually sizeof(fftw_complex)/sizeof(Data)
-    return result;
-  }
-  */
+ 
   template <class K>
   void createPlansAndKernels(const K& kernelFunctor, bool storeKernels, bool quiet)
   {  
@@ -630,10 +580,6 @@ private:
 		      q[j]=k0[j]+p[j];
 
 		    fftwTransposedSwap(q[NDIM-2],q[NDIM-1]);
-// #ifdef HAVE_FFTW3_MPI
-// 		    // Because we are using the transposed fourier array (faster)
-// 		    std::swap(q[NDIM-2],q[NDIM-1]);
-// #endif
 		    
 		    for (int j=0;j<NDIM;++j) 
 		      {
@@ -654,13 +600,10 @@ private:
 	    double k1Norm[NDIM];
 	    double k[NDIM];
 	    double k1[NDIM];
-	    
-	    //norm *= double(info.nElements)/(info.size[0]*info.size[1]*info.size[2]);
 
 	    for (int i=0;i<NDIM;++i) 
 	      {
 		p[i]=0;
-		//kNorm[i]=twopi/(info.sizeT[i]*info.dimsT[i]);
 		kNorm[i]=twopi/(info.sizeT[i]);		
 		k1Norm[i]=1.0L/(info.dimsT[i]);
 	      }
@@ -671,10 +614,6 @@ private:
 		  q[j]=k0[j]+p[j];
 
 		fftwTransposedSwap(q[NDIM-2],q[NDIM-1]);
-// #ifdef HAVE_FFTW3_MPI
-// 		// Because we are using the transposed fourier array (faster)
-// 		std::swap(q[NDIM-2],q[NDIM-1]);
-// #endif
 
 		for (int j=0;j<NDIM;++j)
 		  {
@@ -710,7 +649,7 @@ private:
   {    
     static const double pi = acos(-1.0);
     static const double twopi = pi*2;//6.283185307179586232L;
-    //static const double pi =    3.141592653589793238L;
+
     Complex *d = reinterpret_cast<Complex *>(data);
     double norm = 1.0L/info.nElements;
     long k0[NDIM]={0};
@@ -735,10 +674,6 @@ private:
 	  q[j]=k0[j]+p[j];
 
 	fftwTransposedSwap(q[NDIM-2],q[NDIM-1]);
-// #ifdef HAVE_FFTW3_MPI
-// 	// Because we are using the transposed fourier array (faster)
-// 	std::swap(q[NDIM-2],q[NDIM-1]);
-// #endif
 
 	for (int j=0;j<NDIM;++j)
 	  {
@@ -831,18 +766,6 @@ private:
 
 	  sizeT[i]=size[i];	  
 	}
-
-// #ifdef HAVE_FFTW3_MPI
-//       std::swap(dimsT[NDIM-1],dimsT[NDIM-2]);
-//       std::swap(localDimsT[NDIM-1],localDimsT[NDIM-2]);     
-//       std::swap(localPositionT[NDIM-1],localPositionT[NDIM-2]); 
-
-//       std::swap(dimsFT[NDIM-1],dimsFT[NDIM-2]);
-//       std::swap(localDimsFT[NDIM-1],localDimsFT[NDIM-2]);
-//       std::swap(localPositionFT[NDIM-1],localPositionFT[NDIM-2]);
-
-//       std::swap(sizeT[NDIM-1],sizeT[NDIM-2]);
-// #endif
 
       fftwTransposedSwap(dimsT[NDIM-1],dimsT[NDIM-2]);
       fftwTransposedSwap(localDimsT[NDIM-1],localDimsT[NDIM-2]);     

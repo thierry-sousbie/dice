@@ -277,7 +277,6 @@ namespace slv {
 
       for (int sid=0;sid<Simplex::NSEG;++sid)
 	{
-	  //int sid = seg->getSimplex()->findSegmentIndex(seg);
 	  SegmentHandle seg=simplex->getSegmentHandle(sid);
 	  coords[0]=seg->getVertex(0)->getCoordsPtr();
 	  coords[1]=seg->getVertex(1)->getCoordsPtr();
@@ -347,12 +346,6 @@ namespace slv {
 	      geometry->template getBaseVectors<Coord,Coord,2,NDIM_W>(coords,dz);
 	    
 	      double invariant = fabs(internal::computeInvariant<NDIM,NDIM_W>(dz));
-	      /*
-	      double invariant = 0;
-	      for (int i=0;i<NDIM;++i)
-		invariant += dz[0][i]*dz[1][NDIM+i] - dz[1][i]*dz[0][NDIM+i];
-	      invariant = fabs(invariant);
-	      */
 	 
 	      if (invariant > score) 
 		{
@@ -460,8 +453,7 @@ namespace slv {
       static const int NDIM_W = M::NDIM_W;
      
       double score=1; // stores the cosine of an angle
-      int maxIndex=0;
-      //Simplex *simplex = nb.simplex;
+      int maxIndex=0;    
       Tracer *tracer = simplex->tracer.getPointer(); 
       Coord barycenter[NDIM_W]={0};
       
@@ -524,21 +516,6 @@ namespace slv {
       Coord midPoint[NDIM_W];
       Coord dz[2][NDIM_W];
       Coord *coords[3];
-
-      /*
-      Coord barycenter[NDIM_W]={0};      
-      for (int i=0;i<Simplex::NVERT;++i) 
-	{
-	  const Coord *coords=nb.simplex->getVertex(i)->getCoordsConstPtr();
-	  
-	  for (int j=0;j<NDIM_W;++j)
-	    barycenter[j] +=geometry->
-	      checkCoordConsistency(coords[j],nb.simplex->tracer.getValueAt(j),j);
-	}
-      
-      for (int i=0;i<NDIM_W;++i) 
-	barycenter[i]/=Simplex::NVERT;
-      */
 
       coords[1]=midPoint; // barycenter of opposite facet for each vertex k
       //coords[1]=barycenter;
