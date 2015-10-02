@@ -1050,12 +1050,18 @@ public:
     if (sz<2)
       {
 	if ((getNFields() == 1)||(whichField<0))
-	  std::copy_n(getDataPtr(),getLocalNValues()*getNFields(),lg.getDataPtr());
+	  {
+	    if (getDataPtr() != lg.getDataPtr())
+	      std::copy_n(getDataPtr(),getLocalNValues()*getNFields(),lg.getDataPtr());
+	  }
 	else
 	  {
-	    typename LocalGrid::oneFieldIterator itOut(lg.subbox_begin(pos[rank],iMax[rank]),fieldIndex);
+	    typename LocalGrid::oneFieldIterator itOut
+	      (lg.subbox_begin(pos[rank],iMax[rank]),fieldIndex);
+
 	    local_oneFieldIterator itIn(grid->begin(),fieldIndex);
 	    const local_oneFieldIterator itIn_end(grid->end(),fieldIndex);
+	    
 	    std::copy(itIn,itIn_end,itOut);
 	  }
 	//std::copy_n(getDataPtr(),getLocalNValues()*getNFields(),lg.getDataPtr());
