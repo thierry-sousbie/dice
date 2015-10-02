@@ -14,6 +14,7 @@
 #include "./gridTopology.hxx"
 #include "./regularGridSlicer_simple.hxx"
 #include "./gridKernels.hxx"
+#include "./gatheredGridSubset.hxx"
 
 #include "../geometry/boundaryType.hxx"
 #include "../geometry/geometricProperties.hxx"

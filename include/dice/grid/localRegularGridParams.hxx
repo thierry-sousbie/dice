@@ -1,5 +1,5 @@
-#ifndef __LOCAl_REGULAR_GRID_PARAMS_HXX__
-#define __LOCAl_REGULAR_GRID_PARAMS_HXX__
+#ifndef __LOCAL_REGULAR_GRID_PARAMS_HXX__
+#define __LOCAL_REGULAR_GRID_PARAMS_HXX__
 
 #include <string>
 #include "../dice_globals.hxx"
