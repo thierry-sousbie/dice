@@ -1171,8 +1171,10 @@ public:
 	    continue;
 	  }
 
-	typename LocalGrid::oneFieldIterator it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
-	const typename LocalGrid::oneFieldIterator it_end(lg.subbox_end(pos[rk],iMax[rk]),fieldIndex);
+	typename LocalGrid::oneFieldIterator 
+	  it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
+	const typename LocalGrid::oneFieldIterator 
+	  it_end(lg.subbox_end(pos[rk],iMax[rk]),fieldIndex);
 	nSend[rk]=0;
 	for (;it!=it_end;++it)
 	  {
@@ -1290,8 +1292,11 @@ public:
       {
 	if (nSend[rk]==0) continue;
 
-	typename LocalGrid::oneFieldIterator it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
-	const typename LocalGrid::oneFieldIterator it_end(lg.subbox_end(pos[rk],iMax[rk]),fieldIndex);
+	typename LocalGrid::oneFieldIterator 
+	  it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
+	const typename LocalGrid::oneFieldIterator 
+	  it_end(lg.subbox_end(pos[rk],iMax[rk]),fieldIndex);
+
 	Index index=0;
 	Index *indexVec = &sendBuffer[nSendCum[rk]];
 
@@ -1386,7 +1391,9 @@ public:
       {
 	if (nReceiveData[rk]==0) continue;
 
-	typename LocalGrid::oneFieldIterator it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
+	typename LocalGrid::oneFieldIterator 
+	  it(lg.subbox_begin(pos[rk],iMax[rk]),fieldIndex);
+
 	Data *dataVec = &receiveDataBuffer[nReceiveDataCum[rk]];
 	int nFound=0;
 
