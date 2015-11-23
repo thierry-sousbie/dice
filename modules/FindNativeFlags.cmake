@@ -10,9 +10,14 @@ SET(NATIVE_CXX_FLAGS "-xHost")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BACKUP} ${NATIVE_CXX_FLAGS}")
 check_cxx_source_compiles(
   "
+#include <iostream>
   int main() 
-   {return 0;}
-  "
+   {
+     double a=0;
+     std::cout << a <<std::endl;
+     return 0;
+   }
+"
   NATIVE_FLAGS_FOUND)
 
 
@@ -23,8 +28,13 @@ if (NOT NATIVE_FLAGS_FOUND)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BACKUP} ${NATIVE_CXX_FLAGS}")  
   check_cxx_source_compiles(
     "
+#include <iostream>
   int main() 
-   {return 0;}
+   {
+     double a=0;
+     std::cout << a <<std::endl;
+     return 0;
+   }
   "
     NATIVE_FLAGS_FOUND)
 endif()
