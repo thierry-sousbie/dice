@@ -25,7 +25,7 @@ class GatheredGridSubsetT {
 public:
   typedef typename G::Data Data;
   typedef typename CC::Coord Coord;
-  friend class G;
+  //friend class G;
 
 private:
   enum Mode {indexed=0, full=1};
