@@ -316,7 +316,10 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-  SET(WARNING_SUPRESS_FLAGS "${WARNING_SUPRESS_FLAGS} -Wno-sign-compare -Wno-unused-local-typedefs -Wno-deprecated-register -Wno-unknown-pragmas -fdiagnostics-show-option") 
+  SET(WARNING_SUPRESS_FLAGS "${WARNING_SUPRESS_FLAGS} -Wno-sign-compare -Wno-unused-local-typedefs -Wno-unknown-pragmas -fdiagnostics-show-option")
+  if (GCXX_VERSION VERSION_LESS 5.0.0)
+     SET(WARNING_SUPRESS_FLAGS "${WARNING_SUPRESS_FLAGS} -Wno-deprecated-register")
+  endif()
   message(STATUS "Found GNU compiler, disabling sign compare warnings (-Wno-sign-compare)")
 endif()
 
