@@ -354,7 +354,7 @@ private:
 	    dice::glb::console->print<dice::LOG_WARNING>
 	      ("File '%s' is an invalid gadget file !\n",
 	       fullName[i].c_str());
-	    if (dummy==(256<<24)) 
+	    if (dummy==(256L<<24)) 
 	      dice::glb::console->print<dice::LOG_WARNING>
 	      ("File and machine endianness differ.\n");
 	    return 0;
