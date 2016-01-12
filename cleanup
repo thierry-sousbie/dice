@@ -23,8 +23,8 @@ rm -f ./tools/*/*/*~ ./tools/*/*/\#*
 rm -f ./tools/*/*/*/*~ ./tools/*/*/*/\#*
 
 rm -rf ./build/*
-rm -f  ./bin/*
-rm -f  ./tests/bin/*
+rm -rf ./bin/*
+rm -rf ./tests/bin/*
 rm -rf ./doc/html
 rm -rf ./doc/latex
 
