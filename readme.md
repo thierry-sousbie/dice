@@ -9,7 +9,7 @@
 	| |              | || |              | || |              | || |              | |
 	| '--------------' || '--------------' || '--------------' || '--------------' |
 	'----------------'  '----------------'  '----------------'  '----------------'
-Version 0.9.44  
+Version 0.9.45  
 Copyright(c) 2015 by Thierry Sousbie. All rights reserved.  
 Author: Thierry Sousbie - tsousbie[a]gmail[dot]com  
   
@@ -57,7 +57,7 @@ The Cold dark matter fluid dynamics solver ColDICE is composed of 6 main binarie
 Requirements
 ------------
 
-- A recent C++ compiler compatible with C++11 standard (e.g. g++ v4.8.2+ or intel's icpc v11)  
+- A recent C++ compiler compatible with C++11 standard (e.g. g++ v4.8.2+ or intel's icpc v11). Clang v7.0.2 crashes on compilation !  
  **SEE NOTES BELOW FOR intel compiler users**
 - The Eigen library version 3.2.90+ (in external/)
 - The Boost library version 1.57+ (the headers suffice, not need to compile it)

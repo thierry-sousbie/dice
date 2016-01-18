@@ -130,7 +130,7 @@ public:
 
   static std::string parserCategory() {return "solver";}
   static std::string classHeader() {return "vlasov_poisson_solver";}
-  static float classVersion() {return 0.22;}
+  static float classVersion() {return 0.23;}
   static float compatibleSinceClassVersion() {return 0.17;}
 
   template <class SP, class R, class PM>
@@ -2178,7 +2178,6 @@ protected:
 			    dice::IO::NDNET_WithGhosts|
 			    dice::IO::NDNET_WithNeighbors,
 			    true);
-
     
     dice::glb::console->printFlush<dice::LOG_STD>("Advancing (drift) ... ");
     driftTimer->start();
@@ -2342,7 +2341,27 @@ protected:
 
     if ((forceFull)||(fileDumps.checkEvent(FileDumps::Mesh,true)))
       {dumped=true;mesh->dumpToNDnetwork(fileDumps.getLocalFName(FileDumps::Mesh).c_str());}
+
+    bool dumpedFatMesh=false;
+    if ((forceFull)||(fileDumps.checkEvent(FileDumps::FatMesh,true)))
+      {
+	dumped=true;
+	mesh->dumpToNDnetwork(fileDumps.getLocalFName(FileDumps::Mesh).c_str(),
+			      dice::IO::NDNET_WithShadows|
+			      dice::IO::NDNET_WithGhosts|
+			      dice::IO::NDNET_WithNeighbors);
+	dumpedFatMesh=true;
+      }
     
+    if ((forceFull)||(fileDumps.checkEvent(FileDumps::Mesh,true)))
+      {
+	if (!dumpedFatMesh)
+	  {
+	    dumped=true;
+	    mesh->dumpToNDnetwork(fileDumps.getLocalFName(FileDumps::Mesh).c_str());
+	  }
+      }
+          
     double elapsed = dumpTimer->stop();
 
     if (dumped) dice::glb::console->printFlush<dice::LOG_INFO>

@@ -177,7 +177,7 @@ public:
   typedef dice::SimplexDataElementT<2,6*6,double,
 				    dice::simplexInitDataPolicy::SegTracers,
 				    SEGTRACERS_REFINE_METHOD,
-				    dice::simplexCoarsenDataPolicy::Average,false>  
+				    dice::simplexCoarsenDataPolicy::Average,D_DUMP_TRACERS>  
   SegTracers;
 
   // The coarsen policy should be changed ... 

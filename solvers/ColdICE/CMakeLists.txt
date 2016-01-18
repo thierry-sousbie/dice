@@ -62,6 +62,13 @@ cmessage(STATUS_GREEN "   * Accuracy checking for projection: ${ENABLE_ACCURACY_
 message(STATUS "     Accuracy checking can be defined with '-DENABLE_ACCURACY_CHECKING=true/false'")
 SET(SOLVER_COMPILE_PROPERTIES "${SOLVER_COMPILE_PROPERTIES};D_ENABLE_ACCURACY_CHECKING=${ENABLE_ACCURACY_CHECKING}")
 
+if (NOT DEFINED DUMP_TRACERS)
+  SET(DUMP_TRACERS "true")
+endif()
+cmessage(STATUS_GREEN "   * Enable dumping tracers coordinates: ${DUMP_TRACERS}")
+message(STATUS "     Enable dumping tracers coordinates with '-DDUMP_TRACERS=true/false'")
+SET(SOLVER_COMPILE_PROPERTIES "${SOLVER_COMPILE_PROPERTIES};D_DUMP_TRACERS=${DUMP_TRACERS}")
+
 message (STATUS "")
 cmessage (STATUS_CYAN "---------------------------------------")
 

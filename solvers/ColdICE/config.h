@@ -43,6 +43,11 @@ typedef long double longdouble;
 #define D_ENABLE_ACCURACY_CHECKING false
 #endif
 
+#ifndef D_DUMP_TRACERS
+#define D_DUMP_TRACERS true
+#endif
+
+
 // Define if you don't need simplices tracers (you most probably don't)
 #define NO_SIMPLEX_TRACERS
 
