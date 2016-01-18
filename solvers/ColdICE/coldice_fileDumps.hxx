@@ -29,7 +29,7 @@ public:
   {   
     // Version is the version of VlasovPoisson !
     types.push_back(Info("mesh",Mesh,"mesh",0.15));
-    types.push_back(Info("fatMesh",Mesh,"mesh with ghost/shadows and tracers info",0.23));
+    types.push_back(Info("fatMesh",FatMesh,"mesh with ghost/shadows and tracers info",0.23));
     types.push_back(Info("caustics",Caustics,"caustics surface sub-mesh",0.15));
     types.push_back(Info("lines",Lines,"lagrangian 1D lines sub-mesh",0.15));
     types.push_back(Info("subsets",Subsets,"mesh subsets",0.15));
