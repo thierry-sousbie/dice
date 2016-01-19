@@ -162,7 +162,7 @@ void* fread_sw_fd(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int 
 
 int printNDnetStat(NDnetwork *net, int dec)
 {
-  long i;
+  long i,j;
   long m_dims=0;
 
   for (i=0;i<=net->ndims;i++) 
@@ -188,7 +188,7 @@ int printNDnetStat(NDnetwork *net, int dec)
 
   for (i=0;i<dec;i++) printf (" ");  
   printf ("Available faces: ");
-  for (i=0;i<=net->ndims;i++)
+  for (i=0;i<=net->ndims_net;i++)
     {
       if (i!=m_dims)
 	{
@@ -201,6 +201,30 @@ int printNDnetStat(NDnetwork *net, int dec)
 	    printf ("%ld %ld-F.\n",(long)net->nfaces[i],i);
 	}
     }
+  for (i=0;i<dec;i++) printf (" ");
+  printf ("Stored adjacency data: \n");
+  for (i=0;i<=net->ndims_net;i++)
+    {
+      if (net->haveFaceFromVertex[i])
+	{
+	  int tmp;
+	  for (tmp=0;tmp<dec;tmp++) printf (" ");
+	  printf ("   %ld-Faces adjacent to vertices.\n",i);
+	}
+      for (j=0;j<=net->ndims_net;j++)
+	{
+	  if (net->haveFaceFromFace[i][j])
+	    {
+	      int tmp;
+	      for (tmp=0;tmp<dec;tmp++) printf (" ");
+	      if (i==j)
+		printf ("   %ld-Faces neighbors.\n",i);
+	      else
+		printf ("   %ld-Faces adjacent to %ld-Faces.\n",j,i);
+	    }
+	}
+    }
+    
 
   for (i=0;i<dec;i++) printf (" ");
   printf("Bounding box: x0=[%g",net->x0[0]);
