@@ -2346,10 +2346,23 @@ protected:
     if ((forceFull)||(fileDumps.checkEvent(FileDumps::FatMesh,true)))
       {
 	dumped=true;
+	auto *fptr=mesh->getSimplexFunctorPtr("segTracers");
+	long flags=0;
+
+	if (fptr!=NULL)
+	  {
+	    // Set flags to enable dumping segment tracers
+	    flags=fptr->getFlags();
+	    fptr->setFlags(dice::cellDataFunctors::F_NO_FLAG);
+	  }
+	
 	mesh->dumpToNDnetwork(fileDumps.getLocalFName(FileDumps::Mesh).c_str(),
 			      dice::IO::NDNET_WithShadows|
 			      dice::IO::NDNET_WithGhosts|
 			      dice::IO::NDNET_WithNeighbors);
+	
+	if (fptr!=NULL) fptr->setFlags(flags);
+	
 	dumpedFatMesh=true;
       }
     

@@ -372,25 +372,25 @@ protected:
 
 public:
 
-  const SimplexFunctor *getSimplexFunctorPtr(const std::string &name)
+  SimplexFunctor *getSimplexFunctorPtr(const std::string &name)
   {
     SimplexFunctor *d=cellDataFunctors.getSimplexFunctor(name);
     return d;
   }
 
-  const VertexFunctor *getVertexFunctorPtr(const std::string &name)
+  VertexFunctor *getVertexFunctorPtr(const std::string &name)
   {
     VertexFunctor *d=cellDataFunctors.getVertexFunctor(name);
     return d;
   }
 
-  const SimplexFunctor *getSimplexFunctorPtr(int i)
+  SimplexFunctor *getSimplexFunctorPtr(int i)
   {
     SimplexFunctor *d=cellDataFunctors.getSimplexFunctor(i);
     return d;
   }
 
-  const VertexFunctor *getVertexFunctorPtr(int i)
+  VertexFunctor *getVertexFunctorPtr(int i)
   {
     VertexFunctor *d=cellDataFunctors.getVertexFunctor(i);
     return d;
