@@ -413,7 +413,7 @@ private:
     if (cum.back()<chunkSize_)
       chunkSize_=cum.back();
     
-    iLen_=pow(cum.back(),1.0/3.0);
+    iLen_=pow(cum.back(),1.0/NDIM);
     while (iLen_*iLen_*iLen_<cum.back()) ++iLen_;
     if (iLen_*iLen_*iLen_<cum.back())
       {
