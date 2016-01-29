@@ -327,7 +327,7 @@ public:
 	  PM::PARSER_FIRST,
 	  "Volume threshold to trigger refinement (NOT used)");
 
-    invariantThreshold = 1.E-5;
+    invariantThreshold = 1.E-6;
     invariantThreshold = paramsManager.
       get("invariantThreshold",parserCategory(),invariantThreshold,reader,
 	  PM::PARSER_FIRST,
