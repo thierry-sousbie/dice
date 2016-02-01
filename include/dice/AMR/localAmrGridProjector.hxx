@@ -855,7 +855,7 @@ private:
 	      std::vector<Voxel*> overlap;
 	   
 	      vertexPtr_iterator it=mesh->vertexBegin(bId,nBatches);	    
-	      const vertexPtr_iterator it_end=mesh->vertexEnd(bId,nBatches);	 
+	      const vertexPtr_iterator it_end=mesh->vertexEnd(bId,nBatches); 
 	      do
 		{	
 		  // The maximum accumulated contributions to allow
