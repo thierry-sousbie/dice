@@ -58,6 +58,8 @@
 
 #include "global.h"
 
+int CNP(int n,int p);
+
 size_t fwrite_dummy(size_t size, size_t nmemb,FILE *stream)
 {
   char buffer[FWRITE_DUMMY_BFR_SIZE];

@@ -1,5 +1,4 @@
 project(DICE)
-
 set(USE_LONG_INT_DEF false)
 set(USE_SIMPLE_PRECISION_DEF false)
 set(USE_TR1_DEF true)
@@ -211,10 +210,16 @@ if (USE_PTHREADS OR USE_OPENMP)
   link_libraries(-lpthread)
 endif()
 
+#if (USE_OPENMP)
+#FIND_PACKAGE(OpenMP)
+#message( STATUS "Find openmp flags: $OpenMP_CXX_FLAGS" )
+#endif()
+
 message(STATUS "Using the following compiler: ${CMAKE_CXX_COMPILER_ID}")
 if(CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang")#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   message(STATUS "Clang found")
-  SET(OPENMP_FLAG "-openmp -fopenmp") #this is odd, is there something wrong with my version of clang++ ????
+  add_definitions ("-Wno-unused-local-typedefs")
+  SET(OPENMP_FLAG "-openmp") # (-openmp) this is odd, is there something wrong with my version of clang++ ????
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "(I|i?)ntel")#("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   SET(OPENMP_FLAG "-qopenmp")
 else()

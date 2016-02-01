@@ -55,6 +55,7 @@
 #include "fitsio.h"
 #endif
 
+int C2I(INT *coord, INT *index,int *dims, int ndims,int periodic);
 
 char *print_dataType(char *dest, int type)
 {

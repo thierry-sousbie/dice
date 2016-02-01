@@ -54,6 +54,8 @@
 
 #define PI 3.141592653589793116
 
+double red2dist(double z,double Om,double Ol);
+
 //checks if file is a gadget file
 int IsGadgetFile(const char *fname)
 {
