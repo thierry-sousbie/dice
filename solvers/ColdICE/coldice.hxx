@@ -580,7 +580,7 @@ public:
 #ifdef D_PER_SIMPLEX_INVARIANT
 	if (perSimplexInvariant)
 	  {
-	    if (result < s->invariantThreshold.getValue())
+	    if (result < s->invariantThreshold.getValue()*invariantFactor)
 	      result=0;
 	  }
 	else
@@ -1117,7 +1117,8 @@ protected:
 
 #ifdef D_PER_SIMPLEX_INVARIANT
 		double initThreshold = dice::slv::refine::
-		  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first*2;
+		  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first*
+		  2.0/invariantFactor;
 		s->invariantThreshold.init(mesh,s,&initThreshold);
 #endif
 		
@@ -1930,7 +1931,7 @@ protected:
       if (mesh->getParams().delta[i]>maxBoxLen)
 	maxBoxLen=mesh->getParams().delta[i];
 
-    double invariantFactor=units.velocity*units.length;
+    invariantFactor=units.velocity*units.length;
     if (units.useCosmo)
       {	
 	double a=units.cosmology.a_of_tau(t,aStart);
@@ -1940,7 +1941,8 @@ protected:
       }
 
     invariantThreshold_inv = invariantFactor/invariantThreshold;
-
+    invariantFactor = 1.0/invariantFactor;
+    
     dice::glb::console->print<dice::LOG_STD>
       ("Updated invariant Threshold (th=%g): %g\n",
        invariantThreshold,1.0/invariantThreshold_inv);
@@ -2532,6 +2534,7 @@ protected:
 
   double volumeThreshold_inv;
   double invariantThreshold_inv;
+  double invariantFactor;
   double maximumSegmentLength2_inv;  
 
   double phSortThreshold;
