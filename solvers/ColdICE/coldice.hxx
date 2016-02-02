@@ -898,7 +898,6 @@ protected:
     updateInvariantThreshold(t);
     refineThreshold2 = refineThreshold * (p.delta[0]/(1<<fftGridLevel) * sqrt(NDIM));
     refineThreshold2 = pow(refineThreshold2,2.0); 
-    //invariantThreshold_inv = 1.0F / (invariantThreshold);
     volumeThreshold_inv = 1.0F / (volumeThreshold);
     maximumSegmentLength2_inv = 1.0F / (refineThreshold2);
     coarsenThreshold2 = refineThreshold2*pow(coarsenHysteresis,2.0);
