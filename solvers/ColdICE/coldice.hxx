@@ -585,11 +585,11 @@ public:
 	  }
 	else
 	  {
-	    result *= invariantThreshold_inv;
+	    result *= invariantThreshold_invWithFactor;
 	    if (result < 1) result=0;
 	  }
 #endif
-	result *= invariantThreshold_inv;
+	result *= invariantThreshold_invWithFactor;
 	if (result < 1) result=0;
       }
     
@@ -898,7 +898,7 @@ protected:
     updateInvariantThreshold(t);
     refineThreshold2 = refineThreshold * (p.delta[0]/(1<<fftGridLevel) * sqrt(NDIM));
     refineThreshold2 = pow(refineThreshold2,2.0); 
-    invariantThreshold_inv = 1.0F / (invariantThreshold);
+    //invariantThreshold_inv = 1.0F / (invariantThreshold);
     volumeThreshold_inv = 1.0F / (volumeThreshold);
     maximumSegmentLength2_inv = 1.0F / (refineThreshold2);
     coarsenThreshold2 = refineThreshold2*pow(coarsenHysteresis,2.0);
@@ -1940,12 +1940,12 @@ protected:
 	  a/(units.H*maxBoxLen*maxBoxLen*units.length*units.length);	 
       }
 
-    invariantThreshold_inv = invariantFactor/invariantThreshold;
+    invariantThreshold_invWithFactor = invariantFactor/invariantThreshold;
     invariantFactor = 1.0/invariantFactor;
     
     dice::glb::console->print<dice::LOG_STD>
       ("Updated invariant Threshold (th=%g): %g\n",
-       invariantThreshold,1.0/invariantThreshold_inv);
+       invariantThreshold,1.0/invariantThreshold_invWithFactor);
   }   
 
   void updateTimeStep(double t, double &dt)
@@ -2533,7 +2533,7 @@ protected:
   double coarsenThreshold2; 
 
   double volumeThreshold_inv;
-  double invariantThreshold_inv;
+  double invariantThreshold_invWithFactor;
   double invariantFactor;
   double maximumSegmentLength2_inv;  
 
