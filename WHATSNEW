@@ -2,6 +2,7 @@ v0.9.45
   - Added an option to dump a fatMesh (including the ghost/shadow layers and neighborhood information)
   - Added a compile time option to set whether the tracer should be dumped with the mesh
   - Fixed a bug in the cosmological initial conditions in 2D that give wrong reolution to the mesh
+  - Added an option to use per-simplex invariant thresolds
 
 v0.9.44
   - Added 'dice-config' for easy library configuration

@@ -130,7 +130,7 @@ public:
 
   static std::string parserCategory() {return "solver";}
   static std::string classHeader() {return "vlasov_poisson_solver";}
-  static float classVersion() {return 0.23;}
+  static float classVersion() {return 0.24;}
   static float compatibleSinceClassVersion() {return 0.17;}
 
   template <class SP, class R, class PM>
@@ -165,7 +165,7 @@ public:
 	  serializedVersion>0.145);
     ic = InitialConditionsFactory::template create<Mesh>
       (icType,paramsManager,reader,mpiCom);
-
+    
     if (ic == static_cast<IC*>(NULL))
       {
 	dice::glb::console->printFlush<dice::LOG_ERROR>
@@ -175,14 +175,14 @@ public:
 	   InitialConditionsFactory::getList().c_str());
 	exit(-1);
       }
-   
+    
     typename IC::Params icp=ic->getParams();
-
+    
     // Initialize mesh default params and parse them
     std::copy_n(&icp.x0.front(),NDIM,meshParams.x0);
     std::copy_n(&icp.delta.front(),NDIM,meshParams.delta);    
     meshParams.parse(reader,paramsManager);
-
+    
     // setup cosmology if needed
     units.useCosmo = icp.useCosmo;
     units.useCosmo = paramsManager.
@@ -331,14 +331,14 @@ public:
     invariantThreshold = paramsManager.
       get("invariantThreshold",parserCategory(),invariantThreshold,reader,
 	  PM::PARSER_FIRST,
-	  "Poincare invariant threshold to trigger refinement");
-
+	  "Poincare invariant threshold to trigger refinement (ignored if 'perSimplexInvariant' option is true)");
+    
     splitLongestEdge = SPLIT_LONGEST_EDGE_DEFAULT;
     splitLongestEdge = paramsManager.
       get("splitLongestEdge",parserCategory(),splitLongestEdge,reader,
 	  PM::PARSER_FIRST,
 	  "Set to split the longest longest edge when refining instead of trying to minimize the invariant");
-
+    
     maxSimplexLevel = -1;
     maxSimplexLevel = paramsManager.
       get("maxSimplexLevel",parserCategory(),maxSimplexLevel,reader,
@@ -506,7 +506,7 @@ public:
       get("specifyProfileCenter",FileDumps::parserCategory(),specifyProfileCenter,reader,
 	  PM::PARSER_FIRST,
 	  "Profile is centered on the center of the bounding box if false, or use user specified coordinates if true (see densityProfileCenter)",
-	  serializedVersion>0.205); 
+	  serializedVersion>0.205);
     
     for (int i=0;i<NDIM;++i)
       {
@@ -517,7 +517,32 @@ public:
 	      "The coodinates of the density profile center (only used if specifyProfileCenter is set)",
 	      serializedVersion>0.205); 
       }
+    
+    std::string perSimplexInvariant_txt="Enable a per simplex defined invariant threshold defined from the values measured in the initial conditons.";
+#ifdef D_PER_SIMPLEX_INVARIANT
+    perSimplexInvariant=1;
+#else
+    perSimplexInvariant=0;
+    perSimplexInvariant_txt += std::string(" (Currently disabled: recompile with cmake option '-DPER_SIMPLEX_INVARIANT=true' to enable)");
+#endif
+    perSimplexInvariant=paramsManager.
+      get("perSimplexInvariant",FileDumps::parserCategory(),perSimplexInvariant,reader,
+	  PM::PARSER_FIRST,
+	  perSimplexInvariant_txt,
+	  serializedVersion>0.235);
 
+#ifndef D_PER_SIMPLEX_INVARIANT
+    if (perSimplexInvariant)
+      {
+	dice::glb::console->printFlush<dice::LOG_ERROR>
+	  ("Cannot use a per simplex invariant threshold.\n");
+	dice::glb::console->printFlush<dice::LOG_ERROR>
+	  ("Unset 'perSimplexInvariant' or recompile with cmake option '-DPER_SIMPLEX_INVARIANT=true'\n");
+	exit(-1);
+      }
+#endif
+
+    
     // Non managed parameters (not saved in restart files)
     typename PM::Parser *parser = paramsManager.getParser();
 
@@ -542,28 +567,40 @@ public:
     return geometry->template distance2<Coord,NDIM_W>
       (v1->getCoordsConstPtr(),v2->getCoordsConstPtr()) <= coarsenThreshold2;
   }
-    
+  
   double checkRefine_getValue(Simplex *s)
   {
     double result=0;
-
+    
     if ((maxSimplexLevel<0)||(s->getLevel()<maxSimplexLevel))
       {
 	result = dice::slv::refine::
 	  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first;
 	
+#ifdef D_PER_SIMPLEX_INVARIANT
+	if (perSimplexInvariant)
+	  {
+	    if (result < s->invariantThreshold.getValue())
+	      result=0;
+	  }
+	else
+	  {
+	    result *= invariantThreshold_inv;
+	    if (result < 1) result=0;
+	  }
+#endif
 	result *= invariantThreshold_inv;
-	if (result < 1) result=0;    
+	if (result < 1) result=0;
       }
     
     return result;
   }
-    
+  
   //CheckRefineReturnType 
   int checkRefine_getSplitSegmentIndex(Simplex *s, double &oldVal)
   {   
     int ret;
-
+    
     // invariant is above the threshold, this simplex should be refined !
     if (splitLongestEdge)
       {
@@ -967,7 +1004,7 @@ protected:
 
   void initCellData(double t, bool resimulate=false)
   {    
-     std::vector<double> x0;
+    std::vector<double> x0;
     std::vector<double> delta;
 
     mesh->getBoundingBox(std::back_inserter(x0),std::back_inserter(delta));     
@@ -1077,6 +1114,12 @@ protected:
 		  {
 		    s->mass.init(mesh,s,&density);
 		  }
+
+#ifdef D_PER_SIMPLEX_INVARIANT
+		double initThreshold = dice::slv::refine::
+		  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first*2;
+		s->invariantThreshold.init(mesh,s,&initThreshold);
+#endif
 		
 		if (s->isLocal()) m+=s->mass.getValue();
 	      }
@@ -2521,6 +2564,8 @@ protected:
 
   int pUseVerticesThreshold;
   int maxSimplexLevel;
+
+  int perSimplexInvariant;
   
   int specifyProfileCenter;
   double densityProfileCenter[NDIM];

@@ -47,6 +47,10 @@ typedef long double longdouble;
 #define D_DUMP_TRACERS true
 #endif
 
+#ifndef D_PER_SIMPLEX_INVARIANT
+#define D_PER_SIMPLEX_INVARIANT false
+#endif
+
 
 // Define if you don't need simplices tracers (you most probably don't)
 #define NO_SIMPLEX_TRACERS

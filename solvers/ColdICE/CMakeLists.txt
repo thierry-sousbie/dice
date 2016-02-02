@@ -69,6 +69,13 @@ cmessage(STATUS_GREEN "   * Enable dumping tracers coordinates: ${DUMP_TRACERS}"
 message(STATUS "     Enable dumping tracers coordinates with '-DDUMP_TRACERS=true/false'")
 SET(SOLVER_COMPILE_PROPERTIES "${SOLVER_COMPILE_PROPERTIES};D_DUMP_TRACERS=${DUMP_TRACERS}")
 
+if (NOT DEFINED PER_SIMPLEX_INVARIANT)
+  SET(PER_SIMPLEX_INVARIANT "false")
+endif()
+cmessage(STATUS_GREEN "   * Enable using per-simplex invariant threshold: ${PER_SIMPLEX_INVARIANT}")
+message(STATUS "     Enable using per-simplex invariant threshold with '-DPER_SIMPLEX_INVARIANT=true/false'")
+SET(SOLVER_COMPILE_PROPERTIES "${SOLVER_COMPILE_PROPERTIES};D_PER_SIMPLEX_INVARIANT=${PER_SIMPLEX_INVARIANT}")
+
 message (STATUS "")
 cmessage (STATUS_CYAN "---------------------------------------")
 

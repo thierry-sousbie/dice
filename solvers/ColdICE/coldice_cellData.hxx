@@ -22,6 +22,20 @@
 
 #endif
 
+#ifndef NO_SIMPLEX_TRACERS
+#define SIMPLEX_TRACERS_INDEX 1
+#else
+#define SIMPLEX_TRACERS_INDEX 0
+#endif
+
+#ifdef D_PER_SIMPLEX_INVARIANT
+#define PER_SIMPLEX_INVARIANT_INDEX (SIMPLEX_TRACERS_INDEX +1)
+#else
+#define PER_SIMPLEX_INVARIANT_INDEX (SIMPLEX_TRACERS_INDEX)
+#endif
+
+
+
 #include <dice/tools/helpers/helpers_macros.hxx>
 #include <dice/mesh/cellData/cellDataMacros.hxx>
 #include <dice/mesh/cellData/cellDataFunctors_interface.hxx>
@@ -126,11 +140,20 @@ public:
 
   // The coarsen policy should be changed ... 
 #ifndef NO_SIMPLEX_TRACERS
-  typedef dice::SimplexDataElementT<3,4,double,
+  typedef dice::SimplexDataElementT<3+SIMPLEX_TRACERS_INDEX,4,double,
    				    dice::simplexInitDataPolicy::Barycenter,
    				    TRACER_REFINE_METHOD,
    				    dice::simplexCoarsenDataPolicy::Average> 
   Tracer;
+#endif
+
+  
+#ifdef D_PER_SIMPLEX_INVARIANT
+  typedef dice::SimplexDataElementT<3+PER_SIMPLEX_INVARIANT_INDEX,1,double,		    
+   				    dice::simplexInitDataPolicy::Copy,
+				    dice::simplexRefineDataPolicy::HalfHalf,
+				    dice::simplexCoarsenDataPolicy::Add> 
+  InvariantThreshold;
 #endif
   /*
   typedef dice::SimplexDataElementT<4,1,long,
@@ -144,6 +167,9 @@ public:
   SegTracers segTracers;
 #ifndef NO_SIMPLEX_TRACERS
   Tracer tracer;
+#endif
+#ifdef D_PER_SIMPLEX_INVARIANT
+  InvariantThreshold invariantThreshold;
 #endif
   //DomainIndex domainIndex;
 };
@@ -182,12 +208,21 @@ public:
 
   // The coarsen policy should be changed ... 
 #ifndef NO_SIMPLEX_TRACERS
-  typedef dice::SimplexDataElementT<3,6,double,
+  typedef dice::SimplexDataElementT<3+SIMPLEX_TRACERS_INDEX,6,double,
    				    dice::simplexInitDataPolicy::Barycenter,
    				    TRACER_REFINE_METHOD,
    				    dice::simplexCoarsenDataPolicy::Average> 
   Tracer;
 #endif
+
+#ifdef D_PER_SIMPLEX_INVARIANT
+  typedef dice::SimplexDataElementT<3+PER_SIMPLEX_INVARIANT_INDEX,1,double,		    
+   				    dice::simplexInitDataPolicy::Copy,
+				    dice::simplexRefineDataPolicy::HalfHalf,
+				    dice::simplexCoarsenDataPolicy::Add> 
+  InvariantThreshold;
+#endif
+  
   /*
   typedef dice::SimplexDataElementT<4,1,long,
 				    dice::simplexInitDataPolicy::Copy,
@@ -200,6 +235,9 @@ public:
   SegTracers segTracers;
 #ifndef NO_SIMPLEX_TRACERS
   Tracer tracer;
+#endif
+#ifdef D_PER_SIMPLEX_INVARIANT
+  InvariantThreshold invariantThreshold;
 #endif
   // DomainIndex domainIndex;
 };
