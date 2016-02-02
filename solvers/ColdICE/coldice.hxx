@@ -518,7 +518,7 @@ public:
 	      serializedVersion>0.205); 
       }
     
-    std::string perSimplexInvariant_txt="Enable a per simplex defined invariant threshold defined from the values measured in the initial conditons.";
+    std::string perSimplexInvariant_txt="Enable a per simplex invariant threshold defined from the values measured in the initial conditons multiplied by 2.";
 #ifdef D_PER_SIMPLEX_INVARIANT
     perSimplexInvariant=1;
 #else
