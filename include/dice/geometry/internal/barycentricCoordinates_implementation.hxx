@@ -29,7 +29,7 @@ namespace internal {
 	{
 	  lambda[i]=0;
 	  for (int j=0;j<NDIM;j++)
-	    lambda[i]+=matrix[i][j]*vec[j];
+	    lambda[i]+=matrix[j][i]*vec[j];
 	  lambda[0]-=lambda[i];
 	}     
     }
@@ -76,8 +76,8 @@ namespace internal {
     template <class T1, class T2>
     void computeLambda(const T1  vec[], T2 lambda[]) const
     {
-      lambda[1] = matrix[0][0]*vec[0] + matrix[0][1]*vec[1];
-      lambda[2] = matrix[1][0]*vec[0] + matrix[1][1]*vec[1];
+      lambda[1] = matrix[0][0]*vec[0] + matrix[1][0]*vec[1];
+      lambda[2] = matrix[0][1]*vec[0] + matrix[1][1]*vec[1];
       lambda[0] = 1.0F - lambda[1] - lambda[2];
     }
     
@@ -100,9 +100,9 @@ namespace internal {
     template <class T1, class T2>
     void computeLambda(const T1 *vec, T2 *lambda) const
     {
-      lambda[1] = matrix[0][0]*vec[0] + matrix[0][1]*vec[1] + matrix[0][2]*vec[2];
-      lambda[2] = matrix[1][0]*vec[0] + matrix[1][1]*vec[1] + matrix[1][2]*vec[2];
-      lambda[3] = matrix[2][0]*vec[0] + matrix[2][1]*vec[1] + matrix[2][2]*vec[2];
+      lambda[1] = matrix[0][0]*vec[0] + matrix[1][0]*vec[1] + matrix[2][0]*vec[2];
+      lambda[2] = matrix[0][1]*vec[0] + matrix[1][1]*vec[1] + matrix[2][1]*vec[2];
+      lambda[3] = matrix[0][2]*vec[0] + matrix[1][2]*vec[1] + matrix[2][2]*vec[2];
       lambda[0] = 1.0F - lambda[1] - lambda[2] - lambda[3];
     }
     

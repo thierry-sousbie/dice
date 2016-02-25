@@ -191,9 +191,10 @@ public:
 
 	CT tmp[NDIM];
 	for (int i=0;i<NDIM;++i) tmp[i]=0;
-	for (int i=0;i<NDIM;++i)
-	  for (int j=0;j<NDIM;++j)
-	    tmp[j]+=Base::matrix[i][j]*(fVal[i+1]-fVal[0]);
+	
+	for (int j=0;j<NDIM;++j)
+	  for (int i=0;i<NDIM;++i)
+	    tmp[j]+=Base::matrix[j][i]*(fVal[i+1]-fVal[0]);
 
 	for (int i=0;i<NDIM;++i)
 	  gradient[i]=hlp::numericStaticCast<T2>(tmp[i]);

@@ -35,7 +35,7 @@ struct InverseMatrixT
    *  \return the determinant of 'mat'
    */
   static inline double 
-  compute(const T (&mat)[ND][ND], const T2 (&out)[ND][ND])
+  compute(const T (&mat)[ND][ND], T2 (&out)[ND][ND])
   {
     return internal::InverseMatrixT<ND,T,T2>::compute(mat,out);    
   }

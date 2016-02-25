@@ -67,8 +67,8 @@ namespace internal {
 	  CT det_inv=CT(1.0)/det;
 
 	  out[0][0]=mat[1][1]*det_inv;
-	  out[0][1]=-mat[1][0]*det_inv;
-	  out[1][0]=-mat[0][1]*det_inv;
+	  out[0][1]=-mat[0][1]*det_inv;
+	  out[1][0]=-mat[1][0]*det_inv;
 	  out[1][1]=mat[0][0]*det_inv;
 	}
       return det;
@@ -106,15 +106,15 @@ namespace internal {
 	  CT det_inv=CT(1.0)/det;
 
 	  out[0][0] = (mat[1][1]*mat[2][2] - mat[2][1]*mat[1][2]) * det_inv;
-	  out[0][1] = (mat[2][0]*mat[1][2] - mat[1][0]*mat[2][2]) * det_inv;
-	  out[0][2] = (mat[1][0]*mat[2][1] - mat[2][0]*mat[1][1]) * det_inv;
-
-	  out[1][0] = (mat[2][1]*mat[0][2] - mat[0][1]*mat[2][2]) * det_inv;
+	  out[0][1] = (mat[2][1]*mat[0][2] - mat[0][1]*mat[2][2]) * det_inv;
+	  out[0][2] = (mat[0][1]*mat[1][2] - mat[1][1]*mat[0][2]) * det_inv;
+	  
+	  out[1][0] = (mat[2][0]*mat[1][2] - mat[1][0]*mat[2][2]) * det_inv;
 	  out[1][1] = (mat[0][0]*mat[2][2] - mat[2][0]*mat[0][2]) * det_inv;
-	  out[1][2] = (mat[2][0]*mat[0][1] - mat[0][0]*mat[2][1]) * det_inv;
-
-	  out[2][0] = (mat[0][1]*mat[1][2] - mat[1][1]*mat[0][2]) * det_inv;
-	  out[2][1] = (mat[1][0]*mat[0][2] - mat[0][0]*mat[1][2]) * det_inv;
+	  out[1][2] = (mat[1][0]*mat[0][2] - mat[0][0]*mat[1][2]) * det_inv;
+	  
+	  out[2][0] = (mat[1][0]*mat[2][1] - mat[2][0]*mat[1][1]) * det_inv;
+	  out[2][1] = (mat[2][0]*mat[0][1] - mat[0][0]*mat[2][1]) * det_inv;
 	  out[2][2] = (mat[0][0]*mat[1][1] - mat[1][0]*mat[0][1]) * det_inv;
 	}
       return det;
