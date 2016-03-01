@@ -28,7 +28,7 @@
 #define SIMPLEX_TRACERS_INDEX 0
 #endif
 
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
 #define PER_SIMPLEX_INVARIANT_INDEX (SIMPLEX_TRACERS_INDEX +1)
 #else
 #define PER_SIMPLEX_INVARIANT_INDEX (SIMPLEX_TRACERS_INDEX)
@@ -148,7 +148,7 @@ public:
 #endif
 
   
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
   typedef dice::SimplexDataElementT<3+PER_SIMPLEX_INVARIANT_INDEX,1,double,		    
    				    dice::simplexInitDataPolicy::Copy,
 				    dice::simplexRefineDataPolicy::HalfHalf,
@@ -168,7 +168,7 @@ public:
 #ifndef NO_SIMPLEX_TRACERS
   Tracer tracer;
 #endif
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
   InvariantThreshold invariantThreshold;
 #endif
   //DomainIndex domainIndex;
@@ -215,7 +215,7 @@ public:
   Tracer;
 #endif
 
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
   typedef dice::SimplexDataElementT<3+PER_SIMPLEX_INVARIANT_INDEX,1,double,		    
    				    dice::simplexInitDataPolicy::Copy,
 				    dice::simplexRefineDataPolicy::HalfHalf,
@@ -236,7 +236,7 @@ public:
 #ifndef NO_SIMPLEX_TRACERS
   Tracer tracer;
 #endif
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
   InvariantThreshold invariantThreshold;
 #endif
   // DomainIndex domainIndex;

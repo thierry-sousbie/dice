@@ -519,7 +519,7 @@ public:
       }
     
     std::string perSimplexInvariant_txt="Enable a per simplex invariant threshold defined from the values measured in the initial conditons multiplied by 2.";
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
     perSimplexInvariant=1;
 #else
     perSimplexInvariant=0;
@@ -531,7 +531,7 @@ public:
 	  perSimplexInvariant_txt,
 	  serializedVersion>0.235);
 
-#ifndef D_PER_SIMPLEX_INVARIANT
+#if not D_PER_SIMPLEX_INVARIANT
     if (perSimplexInvariant)
       {
 	dice::glb::console->printFlush<dice::LOG_ERROR>
@@ -577,7 +577,7 @@ public:
 	result = dice::slv::refine::
 	  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first;
 	
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
 	if (perSimplexInvariant)
 	  {
 	    if (result < s->invariantThreshold.getValue()*invariantFactor)
@@ -1114,7 +1114,7 @@ protected:
 		    s->mass.init(mesh,s,&density);
 		  }
 
-#ifdef D_PER_SIMPLEX_INVARIANT
+#if D_PER_SIMPLEX_INVARIANT
 		double initThreshold = dice::slv::refine::
 		  poincareInvariantWithSegTracers_order1<Mesh>(s,geometry).first*
 		  2.0/invariantFactor;

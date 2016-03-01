@@ -1,6 +1,7 @@
 v0.9.46
   - Corrected matrix inversion (was computing the transposed inverse previously)
   - Added so possibility of orienting the sine waves initial conditions for testing anisotropy
+  - Corrected refinement, which was bugged since v0.9.45 !!!!!
   
 v0.9.45
   - Added an option to dump a fatMesh (including the ghost/shadow layers and neighborhood information)
