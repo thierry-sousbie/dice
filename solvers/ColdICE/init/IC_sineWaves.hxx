@@ -80,9 +80,10 @@ public:
       {
 	uco[i]=0;
 	for (int j=0;j<NDIM;++j)
-	  uco[i]+=kInv[i][j]*x[j];
+	  uco[i]+=kInv[j][i]*x[j];
+	u[i]=uco[i];
       }
-
+    /*
     // Multiply by metric tensor to get contravariant coords (not working)
     for (int i=0;i<NDIM;++i)
       {
@@ -91,7 +92,7 @@ public:
 	  u[i]+=g[i][j]*uco[j];
 	//u[i]=uco[i];
       }
-
+    */
     // Scale and peridoize
     for (int i=0;i<NDIM;++i)
       {
@@ -200,14 +201,14 @@ private:
     for (int k=0;k<NDIM;++k)
       {
 	int orMin=10000;
+	buildNextIVec(orientation,k);
 	for (int i=0;i<NDIM;++i)
 	  {
-	    orientation[k][i] = (k>0)?orientation[k-1][i]:(i==0);
 	    orientation[k][i] = paramsManager.
 	      get("orientation",Interface::parserCategory(),orientation[k][i],k*NDIM+i,
 		  reader,PM::FILE_FIRST,
-		  "A vector of -INTEGER- components indicating the direction orthogonal to the plane wave W.R.T each axis (integer components ensure correct reconnection of the waves with periodic boundary conditions). You can give a single vector (=> simple rotation defined by the image of vec(X)) or one for each dimension (=> possibly not orthonormal bases).");
-	    if (orMin>orientation[k][i]) orMin=orientation[k][i];
+		  "A vector of -INTEGER- components indicating the direction orthogonal to the plane wave W.R.T each axis (integer components ensure correct reconnection of the waves with periodic boundary conditions). If you give a single vector, an arbitrary orthonormal basis will be built.");
+	    if ((orMin>orientation[k][i])&&(orientation[k][i]>0)) orMin=orientation[k][i];
 	  }
 	
 	// Make sure the components have no common factors
@@ -241,7 +242,7 @@ private:
 	for (int i=0;i<NDIM;++i)
 	  kVec[j][i]/=scaleFactor[j];
       }
-    
+    /*
     if (NDIM==2)
       {
 	double tmp=kVec[1][0];
@@ -267,7 +268,7 @@ private:
 	    for (int j=0;j<NDIM;++j) kVec[k][j]*=dot;
 	  }
       }
-
+    */
     dice::InverseMatrixT<NDIM,double,double>::compute(kVec,kInv);
 
     for (int i=0;i<NDIM;++i)
@@ -341,6 +342,47 @@ private:
       if (i!=index) tmp+=cos(2.0L*M_PI*(x[i]-0.5))*amplitude[i];
     
     return result*tmp;
+  }
+
+  template <typename I>
+  void buildNextIVec(I iVec[NDIM][NDIM], int which)
+  {
+    if (which>=NDIM) return;
+    
+    if (which==0)
+      {
+	for (int i=0;i<NDIM;++i)
+	  iVec[0][i]=(i==0);
+      }
+    else if (which==1)
+      {
+	if (NDIM==2)
+	  {
+	    iVec[1][0]=-iVec[0][1];
+	    iVec[1][1]= iVec[0][0];
+	  }
+	else
+	  {
+	    std::vector<int> id;
+	    for (int i=0;i<NDIM;++i)
+	      {
+		iVec[1][i]=0;
+		if (iVec[0][i]!=0) id.push_back(i);
+	      }
+	    if (id.size()==1) iVec[1][(id[0]+1)%NDIM]=iVec[0][id[0]];
+	    else
+	      {
+		iVec[1][id[0]]=-iVec[0][id[1]];
+		iVec[1][id[1]]= iVec[0][id[0]];
+	      }
+	  }
+      }
+    else if (which==2)
+      {
+	iVec[2][0]=iVec[0][1]*iVec[1][2]-iVec[0][2]*iVec[1][1];
+	iVec[2][1]=iVec[0][2]*iVec[1][0]-iVec[0][0]*iVec[1][2];
+	iVec[2][2]=iVec[0][0]*iVec[1][1]-iVec[0][1]*iVec[1][0];
+      }
   }
 
   int cosmo;
