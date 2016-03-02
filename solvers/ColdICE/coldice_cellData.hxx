@@ -135,7 +135,7 @@ public:
 				    dice::simplexInitDataPolicy::SegTracers,
 				    SEGTRACERS_REFINE_METHOD,
 				    dice::simplexCoarsenDataPolicy::Average,
-				    false> // do not output this field to file
+				    D_DUMP_TRACERS>
   SegTracers;
 
   // The coarsen policy should be changed ... 
@@ -203,7 +203,8 @@ public:
   typedef dice::SimplexDataElementT<2,6*6,double,
 				    dice::simplexInitDataPolicy::SegTracers,
 				    SEGTRACERS_REFINE_METHOD,
-				    dice::simplexCoarsenDataPolicy::Average,D_DUMP_TRACERS>  
+				    dice::simplexCoarsenDataPolicy::Average,
+				    D_DUMP_TRACERS>  
   SegTracers;
 
   // The coarsen policy should be changed ... 
