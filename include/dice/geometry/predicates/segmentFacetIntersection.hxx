@@ -41,6 +41,18 @@ namespace predicate
   public:
     static const int NDIM = ND;
 
+    template <class F, class G>
+    static int test(const F &facet, 
+		    const typename F::Coord pCoord[NDIM], 
+		    int dim, typename F::Coord otherCoord,
+		    const G* geometry,
+		    int coordsAreConsistent=-1)
+    {
+      typedef char T;
+      T dummy;
+      return test<F,G,T,T,false>(facet,pCoord,otherCoord,geometry,dummy,coordsAreConsistent);
+    }
+
     /**
      * \param facet the facet of a simplex
      * \param pCoord A pointer to the ND coordinates of an extremity of the segment
@@ -56,7 +68,7 @@ namespace predicate
      *  GeometricPropertiesT
      * \return true if the the segment and facet intersect
      */
-    template <class F, class G, class T, class CT=T>
+    template <class F, class G, class T, class CT=T, bool INTERP=true>
     static int test(const F &facet, 
 		    const typename F::Coord pCoord[NDIM], 
 		    int dim, typename F::Coord otherCoord,
@@ -73,7 +85,7 @@ namespace predicate
 	    vCoord[n][d]=v->getCoord(d);
 	}
 
-      return test<Coord,G,T,CT>
+      return test<Coord,G,T,CT,INTERP>
 	(vCoord,pCoord,dim,otherCoord,geometry,intersectionCoord,coordsAreConsistent);
 
       /*
@@ -88,6 +100,17 @@ namespace predicate
 	  (vCoord,pCoord,dim,otherCoord,intersectionCoord,geometry);  
       */
     }
+
+    template <class F>
+    static int test(const F &facet, 
+		    const typename F::Coord pCoord[NDIM], 
+		    int dim, typename F::Coord otherCoord)
+		    
+    {
+      typedef char T;
+      T dummy;
+      return test<F,T,T,false>(facet,pCoord,otherCoord,dummy);
+    }
     
     /**
      * \param facet the facet of a simplex
@@ -98,7 +121,7 @@ namespace predicate
      * \tparam F The Facet class
      * \return true if the the segment and facet intersect
      */
-    template <class F, class T, class CT=T>
+    template <class F, class T, class CT=T, bool INTERP=true>
     static int test(const F &facet, 
 		    const typename F::Coord pCoord[NDIM], 
 		    int dim, typename F::Coord otherCoord,
@@ -114,12 +137,25 @@ namespace predicate
 	    vCoord[n][d]=v->getCoord(d);
 	}
       
-      return test<Coord,T,CT>
+      return test<Coord,T,CT,INTERP>
 	(vCoord,pCoord,dim,otherCoord,intersectionCoord);
       /*
       return Base::template getSegmentFacetIntersection<Coord,T,CT>
 	(vCoord,pCoord,dim,otherCoord,intersectionCoord);  
       */
+    }
+
+    template <class FCT, class G>
+    static int test(const FCT (vCoord)[NDIM][NDIM],
+		    const FCT pCoord[NDIM], 
+		    int dim, FCT otherCoord,
+		    const G* geometry,
+		    int coordsAreConsistent=-1)		    
+    {
+      typedef char T;
+      T dummy;
+      return test<FCT,G,T,T,false>
+	(vCoord,pCoord,dim,otherCoord,geometry,dummy,coordsAreConsistent);
     }
 
     /**
@@ -137,7 +173,7 @@ namespace predicate
      *  GeometricPropertiesT
      * \return true if the the segment and facet intersect
      */
-    template <class FCT, class G, class T, class CT=T>
+    template <class FCT, class G, class T, class CT=T, bool INTERP=true>
     static int test(const FCT (vCoord)[NDIM][NDIM],
 		    const FCT pCoord[NDIM], 
 		    int dim, FCT otherCoord,
@@ -150,11 +186,21 @@ namespace predicate
 	  ((coordsAreConsistent<0)&& 
 	   geometry->template coordsAreConsistent<Coord,NDIM,NDIM>(vCoord,pCoord))
 	  )
-	return Base::template getSegmentFacetIntersection<Coord,T,CT>
+	return Base::template getSegmentFacetIntersection<Coord,T,CT,INTERP>
 	  (vCoord,pCoord,dim,otherCoord,intersectionCoord);
       else
-	return Base::template getSegmentFacetIntersection<Coord,T,G,CT>
+	return Base::template getSegmentFacetIntersection<Coord,T,G,CT,INTERP>
 	  (vCoord,pCoord,dim,otherCoord,intersectionCoord,geometry);  
+    }
+
+    template <class FCT>
+    static int test(const FCT (vCoord)[NDIM][NDIM],
+		    const FCT pCoord[NDIM], 
+		    int dim, FCT otherCoord)
+    {
+      typedef char T;
+      T dummy;
+      return test<FCT,T,T,false>(vCoord,pCoord,dim,otherCoord,dummy);
     }
     
     /**
@@ -167,7 +213,7 @@ namespace predicate
      * \tparam FCT the type of the coordinates
      * \return true if the the segment and facet intersect
      */
-    template <class FCT, class T, class CT=T>
+    template <class FCT, class T, class CT=T, bool INTERP=true>
     static int test(const FCT (vCoord)[NDIM][NDIM],
 		    const FCT pCoord[NDIM], 
 		    int dim, FCT otherCoord,
@@ -175,7 +221,7 @@ namespace predicate
     {
       typedef FCT Coord;
   
-      return Base::template getSegmentFacetIntersection<Coord,T,CT>
+      return Base::template getSegmentFacetIntersection<Coord,T,CT,INTERP>
 	(vCoord,pCoord,dim,otherCoord,intersectionCoord);  
     }
   };

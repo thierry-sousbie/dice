@@ -2,7 +2,21 @@
 #define __POINT_IN_SIMPLEX_BASE_2D_HXX__
 
 #include "pointInSimplexBasePrototype.hxx"
+
 #include "../orientation.hxx"
+
+#include "../../geometricProperties.hxx"
+
+#include "../../../tools/wrappers/boostMultiprecisionFloat128.hxx"
+
+#ifdef HAVE_BOOST
+//#include <boost/multiprecision/cpp_dec_float.hpp>
+//#endif
+#ifdef HAVE_GMP
+#include <boost/multiprecision/gmp.hpp>
+#endif
+#endif
+
 
 #include "../../../internal/namespace.header"
 
@@ -15,6 +29,7 @@ namespace internal {
     static const int NDIM=2;
     typedef predicate::OrientationT<2,filterType> Orientation;
 
+    /*
     template <class T, class T2>
     static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
 				       const int dim, T2 &zCoord)
@@ -30,21 +45,109 @@ namespace internal {
       printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
       exit(-1);
     }
-
-    template <class T, class T2, class CT=T2>
+    */
+    
+    template <class T, class T2, class CT=T2, bool INTERP=true>
     static int getSegmentFacetIntersection(const T vCoord[][NDIM], const T pCoord[NDIM], 
-					   int dim, T p2, T2 &zCoord)
+					   int dim, T otherCoord, T2 &intersectionCoord)
     {
-      printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
-      exit(-1);
+      T vCoord1D[NDIM][1];
+      T pCoord1D[1];    
+
+      pCoord1D[0]=pCoord[1-dim];
+      vCoord1D[0][0]=vCoord[0][1-dim];
+      vCoord1D[1][0]=vCoord[1][1-dim];
+     
+      if (test1D<T>(vCoord1D,pCoord1D))
+	{
+	  double testPointCoord[NDIM];
+	  std::copy(pCoord,pCoord+NDIM,testPointCoord);
+	  int res1 = Orientation::test(vCoord[0],vCoord[1],testPointCoord);
+      
+	  testPointCoord[dim]=otherCoord;
+	  int res2 = Orientation::test(vCoord[0],vCoord[1],testPointCoord);
+
+	  if (res1!=res2)
+	    {
+	      if (INTERP)
+		{
+		  if (vCoord1D[1][0]==vCoord1D[0][0])
+		    intersectionCoord=(vCoord[0][dim]+vCoord[1][dim])/2;
+		  else
+		    intersectionCoord = vCoord[0][dim] +
+			(vCoord[1][dim]-vCoord[0][dim])*
+			(pCoord[1-dim]-vCoord[0][1-dim])/
+			(vCoord[1][1-dim]-vCoord[0][1-dim]);
+		}
+	      return 1;
+	    }
+	}
+      return 0;
+      /*
+	printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
+	exit(-1);
+      */
     }
 
-    template <class T, class T2, class G, class CT=T2>
+    template <class T, class T2, class G, class CT=T2, bool INTERP=true>
     static int getSegmentFacetIntersection(const T vCoord[][NDIM], const T pCoord[NDIM], 
-					   int dim, T p2, T2 &zCoord, const G* geometry)
+					   int dim, T otherCoord, T2 &intersectionCoord,
+					   const G* geometry)
     {
-      printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
-      exit(-1);
+      T vCoord1D[NDIM][1];
+      T pCoord1D[1];    
+      
+      pCoord1D[0]=pCoord[1-dim];
+      vCoord1D[0][0]=vCoord[0][1-dim];
+      vCoord1D[1][0]=vCoord[1][1-dim];
+      
+      if (test1D<T>(vCoord1D,pCoord1D,dim,geometry))
+	  {
+	    double testPointCoord[NDIM];
+	    std::copy(pCoord,pCoord+NDIM,testPointCoord);
+	    int res1 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
+      
+	    testPointCoord[dim]=otherCoord;
+	    int res2 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
+
+	    if (res1!=res2)
+	      {
+		if (INTERP)
+		{
+		  if (vCoord1D[1][0]==vCoord1D[0][0])
+		    intersectionCoord=(vCoord[0][dim]+vCoord[1][dim])/2;
+		  else
+		    {
+		      if (!geometry->template coordsAreConsistent<T,2,NDIM>(vCoord,pCoord))
+			{
+			  T vCoord2[2][2]={{vCoord[0][0],vCoord[0][1]},
+					   {vCoord[1][0],vCoord[1][1]}};
+			  T pCoord2[2]={pCoord[0],pCoord[1]};
+		      
+			  geometry->template checkCoordsConsistency<T,2,NDIM>(vCoord2,pCoord2);
+
+			  intersectionCoord = vCoord2[0][dim] +
+			    (vCoord2[1][dim]-vCoord2[0][dim])*
+			    (pCoord2[1-dim]-vCoord2[0][1-dim])/
+			    (vCoord2[1][1-dim]-vCoord2[0][1-dim]);
+			}
+		      else
+			{
+			  intersectionCoord = vCoord[0][dim] +
+			    (vCoord[1][dim]-vCoord[0][dim])*
+			    (pCoord[1-dim]-vCoord[0][1-dim])/
+			    (vCoord[1][1-dim]-vCoord[0][1-dim]);
+			}
+		    }
+		}
+		return 1;
+	      }
+	  }
+       return 0;
+       /*
+	 printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
+	 exit(-1);
+       */
     }
    
 
@@ -86,6 +189,45 @@ namespace internal {
     }
 
   private:
+
+    template <class T>
+    static int test1D(const T vCoord[][1], const T pCoord[1])
+    {
+      if ((pCoord[0]<=vCoord[0][0])||(pCoord[0]>vCoord[1][0])) return 0;
+      return 1;
+    }
+
+    template <class T, class G>
+    static int test1D(const T vCoord[][1], const T pCoord[1], int dim, const G* geometry)
+    {
+      typedef GeometricPropertiesT<typename G::Coord,G::NDIM-1,G::NDIM_W-1,
+				   G::BOUNDARY_TYPE,G::WORLD_BOUNDARY_TYPE> G1D;	
+      G1D geometry1D(*geometry,dim);
+      
+      if (!geometry->template coordsAreConsistent<T,2,1>(vCoord,pCoord))
+	{
+	  T pq2[2][1]={{vCoord[0][0]},{vCoord[1][0]}};
+	  T r2[1]={pCoord[0]};
+	  
+	  if (geometry->template checkCoordsConsistency<T,2,1>(pq2,r2))
+	    {
+	      T eps=1.E-15*geometry->getBBoxSize();
+	      if ((fabs(pq2[0][1]-r2[0])<eps)||
+		  (fabs(pq2[1][1]-r2[0])<eps))
+		{
+		  // We need exact computations !
+		  typedef boost::multiprecision::mpf_float mpfloat;
+		  mpfloat mp_pq[2][1]={{vCoord[0][0]},{vCoord[1][0]}};
+		  mpfloat mp_r[1]={pCoord[0]};
+		  geometry->template checkCoordsConsistency<mpfloat,2,1>(mp_pq,mp_r);
+		  return test1D(mp_pq,mp_r);
+		}
+	    }
+	  else return test1D(pq2,r2);
+	}
+      else return test1D(vCoord,pCoord);
+    }
+    
     
     // Check whether a point is inside or outside a simplex with vertices vCoord. This also
     // work for any polygon with any number of vertices.

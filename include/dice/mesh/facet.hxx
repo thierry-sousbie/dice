@@ -282,6 +282,7 @@ public:
       (simplex,coords,geometry,dim,vertexIndex,intersectionCoord); 
   }
   */
+  
   template <class G, class TZ, class TC=TZ, int filter = predicate::filterType::Adaptive>
   int intersectSegment(const Coord * coords, int dim, Coord otherCoord,
 		       const G * geometry, TZ &intersectionCoord, 
@@ -289,6 +290,15 @@ public:
   {
     return predicate::SegmentFacetIntersectionT<NDIM,filter>::template test<MyType,G,TZ,TC>
       (*this,coords,dim,otherCoord,geometry,intersectionCoord,coordsAreConsistent); 
+  }
+
+  template <class G, int filter = predicate::filterType::Adaptive>
+  int intersectSegment(const Coord * coords, int dim, Coord otherCoord,
+		       const G * geometry, 
+		       int coordsAreConsistent=-1) const
+  {
+    return predicate::SegmentFacetIntersectionT<NDIM,filter>::template test<MyType,G>
+      (*this,coords,dim,otherCoord,geometry,coordsAreConsistent); 
   }
   
 protected:

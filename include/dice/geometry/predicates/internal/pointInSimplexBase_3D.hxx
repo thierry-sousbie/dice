@@ -34,7 +34,7 @@ namespace internal {
   public:
     static const int NDIM=3;
     typedef predicate::OrientationT<3,filterType> Orientation;
-   
+    /*
     template <class T, class T2, class G, class CT=T2>
     static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
 				       const int dim, T2 &zCoord, const G*geometry)
@@ -135,9 +135,9 @@ namespace internal {
 	}      
       return 0;
     }
-
+    */
     // FIXME: IT IS UGLY TO DUPLICATE THIS FUNCTION, FIND A BETTER WAY ?
-    template <class T, class T2, class CT=T2>
+    template <class T, class T2, class CT=T2, bool INTERP=true>
     static int getSegmentFacetIntersection(const T vCoord[NDIM][NDIM], 
 					   const T pCoord[NDIM], 
 					   int dim, T otherCoord, 
@@ -204,7 +204,7 @@ namespace internal {
 		      }
 		  }
 	      */
-	      intersectionCoord = interpolate<T,T2,CT>(vCoord,pCoord,dim);		
+	      if (INTERP) intersectionCoord = interpolate<T,T2,CT>(vCoord,pCoord,dim);		
 	      return 1;
 	    }
 	}
@@ -212,7 +212,7 @@ namespace internal {
       return 0;
     }
 
-    template <class T, class T2, class G, class CT=T2>
+    template <class T, class T2, class G, class CT=T2, bool INTERP=true>
     static int getSegmentFacetIntersection(const T vCoord[NDIM][NDIM], 
 					   const T pCoord[NDIM], 
 					   int dim, T otherCoord, 
@@ -280,7 +280,7 @@ namespace internal {
 			}
 		    }
 		*/
-		intersectionCoord = interpolate<T,G,T2,CT>(vCoord,pCoord,dim,geometry);
+		if (INTERP) intersectionCoord = interpolate<T,G,T2,CT>(vCoord,pCoord,dim,geometry);
 		return 1;
 	      }
 	  }
