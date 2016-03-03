@@ -12,6 +12,7 @@
 #include "../mesh/internal/facetImplementation.hxx"
 
 #include "../geometry/predicates/pointInSimplex.hxx"
+#include "../geometry/predicates/segmentFacetIntersection.hxx"
 
 /**
  * @file 
@@ -286,8 +287,7 @@ public:
 		       const G * geometry, TZ &intersectionCoord, 
 		       int coordsAreConsistent=-1) const
   {
-    return predicate::PointInSimplexT<NDIM,filter>::
-      template intersectSegmentFacet<MyType,G,TZ,TC>
+    return predicate::SegmentFacetIntersectionT<NDIM,filter>::template test<MyType,G,TZ,TC>
       (*this,coords,dim,otherCoord,geometry,intersectionCoord,coordsAreConsistent); 
   }
   

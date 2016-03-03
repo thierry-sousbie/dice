@@ -111,54 +111,6 @@ namespace predicate
       return Base::test(vCoord,&vCoord[NDIM+1][0]);
     }
 
-    template <class F, class G, class T, class CT=T>
-    static int intersectSegmentFacet(const F &facet, 
-				     const typename F::Coord pCoord[NDIM], 
-				     int dim, typename F::Coord otherCoord,
-				     const G* geometry, T &intersectionCoord,
-				     int coordsAreConsistent=-1)
-    {
-      typedef typename F::Coord Coord;
-
-      Coord vCoord[F::NVERT][NDIM];
-      for (int n=0;n<F::NVERT;++n)
-	{
-	  typename F::Vertex *v=facet.getVertex(n);
-	  for (int d=0;d<NDIM;++d)
-	    vCoord[n][d]=v->getCoord(d);
-	}
-    
-      if ((coordsAreConsistent>0)|| 
-	  ((coordsAreConsistent<0)&& 
-	   geometry->template coordsAreConsistent<Coord,F::NVERT,NDIM>(vCoord,pCoord))
-	  )
-	return Base::template getSegmentFacetIntersection<Coord,T,CT>
-	  (vCoord,pCoord,dim,otherCoord,intersectionCoord);
-      else
-	return Base::template getSegmentFacetIntersection<Coord,T,G,CT>
-	  (vCoord,pCoord,dim,otherCoord,intersectionCoord,geometry);  
-    }
-
-    template <class F, class T, class CT=T>
-    static int intersectSegmentFacet(const F &facet, 
-				     const typename F::Coord pCoord[NDIM], 
-				     int dim, typename F::Coord otherCoord,
-				     T &intersectionCoord)
-    {
-      typedef typename F::Coord Coord;
-
-      Coord vCoord[F::NVERT][NDIM];
-      for (int n=0;n<F::NVERT;++n)
-	{
-	  typename F::Vertex *v=facet.getVertex(n);
-	  for (int d=0;d<NDIM;++d)
-	    vCoord[n][d]=v->getCoord(d);
-	}
-  
-      return Base::template getSegmentFacetIntersection<Coord,T,CT>
-	(vCoord,pCoord,dim,otherCoord,intersectionCoord);  
-    }
-  
   };
 
   /** \}*/
