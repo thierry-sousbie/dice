@@ -11,7 +11,7 @@
 #include "../mesh/ghostSimplex.hxx"
 #include "../mesh/shadowSimplex.hxx"
 
-#include "../geometry/pointInSimplex.hxx"
+#include "../geometry/predicates/pointInSimplex.hxx"
 
 /**
  * @file 
@@ -493,7 +493,7 @@ public:
   bool pointIsInside(const Coord * coords, const G * geometry, 
 		     int coordsAreConsistent=-1) const
   {
-    return PointInSimplexT<NDIM,filter>::template test<MyType,G>
+    return predicate::PointInSimplexT<NDIM,filter>::template test<MyType,G>
       (this,coords,geometry,coordsAreConsistent); 
   }
   

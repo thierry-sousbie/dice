@@ -12,8 +12,6 @@
 
 #include "../tools/helpers/helpers.hxx"
 
-#include "../geometry/pointInSimplex.hxx"
-
 #include "../AMR/localAmrGridRaytracer.hxx"
 
 #include "./internal/localAmrGridProjectorBase_2D.hxx"
@@ -267,7 +265,6 @@ public:
   typedef MeshGeometricProperties MGP;
   typedef AmrGeometricProperties AGP;
 
-  typedef PointInSimplexT<NDIM> PointInSimplex;  
   //typedef LocalAmrGridRaytracerT<AMR,IF> Raytracer;
   //typedef typename Raytracer::Coord RayCoord;
 

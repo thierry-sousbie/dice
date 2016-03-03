@@ -11,7 +11,7 @@
 
 #include "../mesh/internal/facetImplementation.hxx"
 
-#include "../geometry/pointInSimplex.hxx"
+#include "../geometry/predicates/pointInSimplex.hxx"
 
 /**
  * @file 
@@ -276,7 +276,8 @@ public:
   int intersectRay(const Coord * coords, const G * geometry,
 		   int dim, TZ &intersectionCoord) const
   {
-    return PointInSimplexT<NDIM>::template intersectRayFacet<Simplex,G,TZ>
+    return predicate::PointInSimplexT<NDIM>::
+      template intersectRayFacet<Simplex,G,TZ>
       (simplex,coords,geometry,dim,vertexIndex,intersectionCoord); 
   }
   */
@@ -285,7 +286,8 @@ public:
 		       const G * geometry, TZ &intersectionCoord, 
 		       int coordsAreConsistent=-1) const
   {
-    return PointInSimplexT<NDIM,filter>::template intersectSegmentFacet<MyType,G,TZ,TC>
+    return predicate::PointInSimplexT<NDIM,filter>::
+      template intersectSegmentFacet<MyType,G,TZ,TC>
       (*this,coords,dim,otherCoord,geometry,intersectionCoord,coordsAreConsistent); 
   }
   

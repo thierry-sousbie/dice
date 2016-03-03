@@ -6,12 +6,12 @@
 #include "pointInSimplexBasePrototype.hxx"
 #include "pointInSimplexBase_2D.hxx"
 
-#include "../predicates/orientation.hxx"
+#include "../orientation.hxx"
 
-#include "../../geometry/simplexInterpolator.hxx"
-#include "../../geometry/geometricProperties.hxx"
+#include "../../simplexInterpolator.hxx"
+#include "../../geometricProperties.hxx"
 
-#include "../../tools/wrappers/boostMultiprecisionFloat128.hxx"
+#include "../../../tools/wrappers/boostMultiprecisionFloat128.hxx"
 
 #ifdef HAVE_BOOST
 //#include <boost/multiprecision/cpp_dec_float.hpp>
@@ -21,7 +21,7 @@
 #endif
 #endif
 
-#include "../../internal/namespace.header"
+#include "../../../internal/namespace.header"
 
 //#define DEBUG_ME 1
 
@@ -35,166 +35,6 @@ namespace internal {
     static const int NDIM=3;
     typedef predicate::OrientationT<3,filterType> Orientation;
    
-    template <class T, class T2, class T3>
-    static int getRayIntersection_OLD(const T vCoord[][NDIM], const T pCoord[NDIM], 
-				  const int dim, T2 faceIndex[2], T3 zCoord[2])
-    {
-#ifdef DEBUG_ME
-      bool debug=false;
-      const double findCoord[3]={-0.101562,0.101562,0.101562};
-      if (findVertex(pCoord[0],pCoord[1],pCoord[2],findCoord[0],findCoord[1],findCoord[2])) 
-	{
-	  debug=true;
-	  printf("Debugging point (%g %g %g) with simplex:\n",pCoord[0],pCoord[1],pCoord[2]);
-	  for (int i=0;i<NDIM+1;++i) 
-	    printf("    P[%d]=(%g %g %g)\n",i,
-		   vCoord[i][0],vCoord[i][1],vCoord[i][2]);
-
-	}
-#endif
-
-      int coord[2];
-      T vCoord2D[NDIM][2];
-      T pCoord2D[2];
-      T faceCoord[2][NDIM][NDIM];     
-      int nFaces=0;
-      
-      int j=0;
-      for (int i=0;i<NDIM;++i) 
-	{
-	  if (i!=dim) 
-	    {
-	      coord[j]=i;
-	      pCoord2D[j]=pCoord[i];
-	      ++j;
-	    }	 
-	}
-
-      // Now count, when projected along Z axis, how many of the 4 triangles contain P.
-      // Answer may only be 2 or 0 !
-      // NOTE: the order must correspond to index2D[4][3]
-      vCoord2D[0][0]=vCoord[0][coord[0]];vCoord2D[0][1]=vCoord[0][coord[1]];
-      vCoord2D[1][0]=vCoord[1][coord[0]];vCoord2D[1][1]=vCoord[1][coord[1]];
-      vCoord2D[2][0]=vCoord[2][coord[0]];vCoord2D[2][1]=vCoord[2][coord[1]];
-      if (test2D<T>(vCoord2D,pCoord2D))
-	{
-	  memcpy(faceCoord[nFaces][0],vCoord[0],sizeof(T)*NDIM*3);
-	  faceIndex[nFaces]=3;
-	  nFaces++;
-#ifdef DEBUG_ME
-	  if (debug) printf("FOUND (%g %g) @3 : (%g %g) (%g %g) (%g %g)\n",
-			    pCoord2D[0],pCoord2D[1],vCoord2D[0][0],vCoord2D[0][1],
-			    vCoord2D[1][0],vCoord2D[1][1],vCoord2D[2][0],vCoord2D[2][1]);
-#endif
-	}
-
-      vCoord2D[0][0]=vCoord[1][coord[0]];vCoord2D[0][1]=vCoord[1][coord[1]];
-      vCoord2D[1][0]=vCoord[2][coord[0]];vCoord2D[1][1]=vCoord[2][coord[1]];
-      vCoord2D[2][0]=vCoord[3][coord[0]];vCoord2D[2][1]=vCoord[3][coord[1]];
-      if (test2D<T>(vCoord2D,pCoord2D))
-	{
-	  memcpy(faceCoord[nFaces][0],vCoord[1],sizeof(T)*NDIM*3);
-	  faceIndex[nFaces]=0;
-	  nFaces++;
-#ifdef DEBUG_ME
-	  if (debug) printf("FOUND (%g %g) @0 : (%g %g) (%g %g) (%g %g)\n",
-			    pCoord2D[0],pCoord2D[1],vCoord2D[0][0],vCoord2D[0][1],
-			    vCoord2D[1][0],vCoord2D[1][1],vCoord2D[2][0],vCoord2D[2][1]);
-#endif
-	}
-      
-      // At most 2 faces may be crossed
-      if (nFaces<2)
-	{
-	  vCoord2D[0][0]=vCoord[0][coord[0]];vCoord2D[0][1]=vCoord[0][coord[1]];
-	  vCoord2D[1][0]=vCoord[2][coord[0]];vCoord2D[1][1]=vCoord[2][coord[1]];
-	  vCoord2D[2][0]=vCoord[3][coord[0]];vCoord2D[2][1]=vCoord[3][coord[1]];
-	  if (test2D<T>(vCoord2D,pCoord2D))
-	    {
-	      memcpy(faceCoord[nFaces][0],vCoord[0],sizeof(T)*NDIM);
-	      memcpy(faceCoord[nFaces][1],vCoord[2],sizeof(T)*NDIM*2);
-	      faceIndex[nFaces]=1;
-	      nFaces++;
-#ifdef DEBUG_ME
-	      if (debug) printf("FOUND (%g %g) @1 : (%g %g) (%g %g) (%g %g)\n",
-				pCoord2D[0],pCoord2D[1],vCoord2D[0][0],vCoord2D[0][1],
-				vCoord2D[1][0],vCoord2D[1][1],vCoord2D[2][0],vCoord2D[2][1]);
-#endif
-	    }	  
-
-	  // at least 3 faces are not crossed => 0 are ...
-	  if (nFaces==1)
-	    {
-	      vCoord2D[0][0]=vCoord[0][coord[0]];vCoord2D[0][1]=vCoord[0][coord[1]];
-	      vCoord2D[1][0]=vCoord[1][coord[0]];vCoord2D[1][1]=vCoord[1][coord[1]];
-	      vCoord2D[2][0]=vCoord[3][coord[0]];vCoord2D[2][1]=vCoord[3][coord[1]];
-	      if (test2D<T>(vCoord2D,pCoord2D))
-		{
-		  memcpy(faceCoord[nFaces][0],vCoord[0],sizeof(T)*NDIM);
-		  memcpy(faceCoord[nFaces][1],vCoord[1],sizeof(T)*NDIM);
-		  memcpy(faceCoord[nFaces][2],vCoord[3],sizeof(T)*NDIM);
-		  faceIndex[nFaces]=2;
-		  nFaces++;
-#ifdef DEBUG_ME
-		  if (debug) printf("FOUND (%g %g) @2 : (%g %g) (%g %g) (%g %g)\n",
-				    pCoord2D[0],pCoord2D[1],vCoord2D[0][0],vCoord2D[0][1],
-				    vCoord2D[1][0],vCoord2D[1][1],vCoord2D[2][0],vCoord2D[2][1]);
-#endif
-		}
-	    }
-	}
-
-      if (nFaces==2)
-	{	  
-	  // Sort the two faces so that the points are always in the same order, whatever 
-	  // the original order of the simplices. This ensure IEEE FP errors consistency !
-	  for (int i=0;i<2;++i)
-	    for (int j=0;j<NDIM-1;++j)
-	      for (int k=j+1;k<NDIM;++k)
-		{
-		  if (faceCoord[i][j][0]<faceCoord[i][k][0])
-		    for (int l=0;l<NDIM;++l) std::swap(faceCoord[i][j][l],faceCoord[i][k][l]);
-		  else if (faceCoord[i][j][0]==faceCoord[i][k][0])
-		    {
-		      if (faceCoord[i][j][1]<faceCoord[i][k][1])
-			for (int l=0;l<NDIM;++l) std::swap(faceCoord[i][j][l],faceCoord[i][k][l]);
-		      else if (faceCoord[i][j][1]==faceCoord[i][k][1])
-			{
-			  if (faceCoord[i][j][2]<faceCoord[i][k][2])
-			    for (int l=0;l<NDIM;++l) std::swap(faceCoord[i][j][l],faceCoord[i][k][l]);
-			}
-		    }
-		}
-	  
-	  if (dim==2)
-	    {
-	      zCoord[0]=interpolateZ<T>(faceCoord[0],pCoord);
-	      zCoord[1]=interpolateZ<T>(faceCoord[1],pCoord);		  
-	    }
-	  else if (dim==1)
-	    {
-	      zCoord[0]=interpolateY<T>(faceCoord[0],pCoord);
-	      zCoord[1]=interpolateY<T>(faceCoord[1],pCoord);
-	    }
-	  else
-	    {
-	      zCoord[0]=interpolateX<T>(faceCoord[0],pCoord);
-	      zCoord[1]=interpolateX<T>(faceCoord[1],pCoord);
-	    }
-	  
-#ifdef DEBUG_ME
-	  if (debug) printf("limit@%d : %.17g < %.17g < %.17g (%d)\n",dim,
-			    zCoord[0],pCoord[dim],zCoord[1],
-			    ((zCoord[0]<pCoord[dim])!=(zCoord[1]<pCoord[dim])));
-#endif
-
-	  return 2;
-	  //return ((z0<pCoord[2])!=(z1<pCoord[2]));	  
-	}
-      
-      return 0;
-    }
-
     template <class T, class T2, class G, class CT=T2>
     static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
 				       const int dim, T2 &zCoord, const G*geometry)
@@ -404,40 +244,6 @@ namespace internal {
 	  vCoord2D[2][0]=vCoord[2][0];vCoord2D[2][1]=vCoord[2][1];
 	}
       
-      /*
-      int j=0;
-      for (int i=0;i<NDIM;++i) 
-	{
-	  if (i!=dim) 
-	    {	   
-	      pCoord2D[j]=pCoord[i];
-	      vCoord2D[0][j]=vCoord[0][i];
-	      vCoord2D[1][j]=vCoord[1][i];
-	      vCoord2D[2][j]=vCoord[2][i];
-	      ++j;
-	    }	 
-	}
-      */
-
-      /*DELETEME*/
-      /*
-      bool test=false;
-      double vertC[2][NDIM]={{-0.015625,0.015625,-0.273438},
-			    {-0.015625,0.015625,-0.265625}};
-      if (findVertex(pCoord[0],pCoord[1],pCoord[2],
-		     vertC[0][0],vertC[0][1],vertC[0][2])||
-	  findVertex(pCoord[0],pCoord[1],pCoord[2],
-		     vertC[1][0],vertC[1][1],vertC[1][2]))
-	test=true;
-      if (test)
-	printf("Testing point @(%20.20e %20.20e) along d%d\n   -> in (%20.20e %20.20e)\n         (%20.20e %20.20e)\n         (%20.20e %20.20e)\n",
-	       pCoord2D[0],pCoord2D[1],dim,	     
-	       vCoord2D[0][0],vCoord2D[0][1],
-	       vCoord2D[1][0],vCoord2D[1][1],
-	       vCoord2D[2][0],vCoord2D[2][1]);
-	       */
-
-      // FIXME: This will only work for a CUBIC box as geometry is 3D => coords always correspond to the first 2 dims !
       if (test2D<T>(vCoord2D,pCoord2D,dim,geometry))
 	  {
 	    double testPointCoord[NDIM];
@@ -448,7 +254,7 @@ namespace internal {
 	    testPointCoord[dim]=otherCoord;
 	    int res2 = Orientation::test(vCoord[0],vCoord[1],vCoord[2],
 					 testPointCoord,geometry);
-	    /*DELETEME*/ //if (test) printf("Passed test, (%d/%d)\n",res1,res2);
+
 	    if (res1!=res2)
 	      {
 		// Sort the vertices so that they are always in the same order. 
@@ -491,17 +297,6 @@ namespace internal {
       res+=Orientation::test(vCoord[0],vCoord[3],vCoord[1],pCoord);
       res+=Orientation::test(vCoord[1],vCoord[3],vCoord[2],pCoord);
       return ((res==4)||(res==0));
-      
-      /*
-      int faceIndex[2];
-      double dimCoord[2];
-      static const int dim=2;
-      int result = getRayIntersection(vCoord, pCoord,dim,faceIndex,dimCoord);
-				      
-      if (result==2)
-	return ((dimCoord[0]<pCoord[dim])!=(dimCoord[1]<pCoord[dim]));
-      return 0;
-      */
     }
 
     template <class T, class G>
@@ -533,130 +328,6 @@ namespace internal {
       G2D geometry2D(*geometry,dim);
       return PointInSimplexBaseT<2,filterType>::template test<T>(vCoord,pCoord,&geometry2D);      
     }
-    /*
-    template <class T>
-    static int test2D_X(const T vCoord[][2], const T pCoord[NDIM-1])
-    {
-      return PointInSimplexBaseT<2,intersectionType>::template testX<T>(vCoord,pCoord);
-    }
-
-     template <class T>
-    static int test2D_Y(const T vCoord[][2], const T pCoord[NDIM-1])
-    {
-      return PointInSimplexBaseT<2,intersectionType>::template testY<T>(vCoord,pCoord);
-    }
-    */
-
-    /*
-    template <class T, class T2>
-    static int planeSide(const T vCoord[][NDIM], const T* const pCoord,const T2* const index)
-    {    
-      double det1 = 
-	(vCoord[1][1]-vCoord[0][1])*(vCoord[2][2]-vCoord[0][2])-
-	(vCoord[2][1]-vCoord[0][1])*(vCoord[1][2]-vCoord[0][2]);
-      double det2 = 
-	(vCoord[1][0]-vCoord[0][0])*(vCoord[2][2]-vCoord[0][2])-
-	(vCoord[2][0]-vCoord[0][0])*(vCoord[1][2]-vCoord[0][2]);
-      double det3 = 
-	(vCoord[1][0]-vCoord[0][0])*(vCoord[2][1]-vCoord[0][1])-
-	(vCoord[2][0]-vCoord[0][0])*(vCoord[1][1]-vCoord[0][1]);
-
-      double det = det1*(pCoord[0]-vCoord[0][0])-det2*(pCoord[1]-vCoord[0][1])+det3*(pCoord[2]-vCoord[0][2]);
-      
-      // det is NULL => simulation of simplicity
-      if (det==0)
-	{
-	  det=-det3;
-	  if (det==0) 
-	    {
-	      det=det2; // This is indeed a + sign (sign of epsilon times -1)
-	      if (det==0) 
-		{
-		  det=-det1;
-		  if (det==0)
-		    {
-		      glb::console->print<LOG_WARNING>("SIMULATING SIMPLICITY\n");
-		      det1 = 
-			(pCoord[1]-vCoord[0][1])*(vCoord[1][0]-vCoord[2][0])-
-			(pCoord[0]-vCoord[0][0])*(vCoord[1][1]-vCoord[0][1]);
-		      det2 =
-			(pCoord[1]-vCoord[0][1])*(vCoord[2][0]-vCoord[0][0])-
-			(pCoord[0]-vCoord[0][0])*(vCoord[2][1]-vCoord[0][1]);
-		      det3 =
-			(pCoord[0]-vCoord[0][0])*(vCoord[1][1]-vCoord[0][1])-
-			(pCoord[1]-vCoord[0][1])*(vCoord[1][0]-vCoord[0][0]);
-		      
-		      if ((index[0]<index[1])&&(index[0]<index[2])) 
-			{det=det1;det1=det2;det2=det3;index[0]=index[1];index[1]=index[2];}
-		      else if (index[1]<index[2]) 
-			{det=det2;det2=det3;index[1]=index[2];}
-		      else 
-			{det=det3;}
-		      if (det==0)
-			{
-			  if (index[0]<index[1]) 
-			    {det=det1;det1=det2;index[0]=index[1];}
-			  else 
-			    {det=det2;}
-			  if (det==0) 
-			    {
-			      det=det1;
-			    }
-			}
-		    }
-		}
-	    }
-	}
-      if (det==0) glb::console->print<LOG_WARNING>("NULL DETERMINANT, SOS failed \n");
-      return (det>0);     
-    }
-    */
-
-    /*
-    template <class T>
-    static int planeSide(const T vCoord[][NDIM], const T pCoord[NDIM])
-    {
-      double det1 = 
-	(vCoord[1][1]-vCoord[0][1])*(vCoord[2][2]-vCoord[0][2])-
-	(vCoord[2][1]-vCoord[0][1])*(vCoord[1][2]-vCoord[0][2]);
-      double det2 = 
-	(vCoord[1][0]-vCoord[0][0])*(vCoord[2][2]-vCoord[0][2])-
-	(vCoord[2][0]-vCoord[0][0])*(vCoord[1][2]-vCoord[0][2]);
-      double det3 = 
-	(vCoord[1][0]-vCoord[0][0])*(vCoord[2][1]-vCoord[0][1])-
-	(vCoord[2][0]-vCoord[0][0])*(vCoord[1][1]-vCoord[0][1]);
-
-      double det = det1*(pCoord[0]-vCoord[0][0])-det2*(pCoord[1]-vCoord[0][1])+det3*(pCoord[2]-vCoord[0][2]);
-      
-      // Simulation of simplicity (only pCoord is perturbed, or equivalently works if vCoord perturbation is smaller)
-      if (det==0)
-	{
-	  det=-det3;
-	  if (det==0) 
-	    {
-	      det=det2; // This is indeed a + sign (sign of epsilon times -1)
-	      if (det==0) 
-		{
-		  det=-det1;
-		}
-	    }
-	  if (det==0) glb::console->print<LOG_WARNING>("NULL DETERMINANT, SOS failed \n");
-	}
-      
-      return (det>0);   
-    }
-    */
-
-    /*
-    template <class T>
-    static double interpolateZ(const T vCoord[NDIM][NDIM], const T pCoord[NDIM-1])
-    {
-      const T z[NDIM]={vCoord[0][2],vCoord[1][2],vCoord[2][2]};
-      const T v[NDIM][NDIM-1]={vCoord[0][0],vCoord[0][1],vCoord[1][0],vCoord[1][1],vCoord[2][0],vCoord[2][1]};
-      SimplexInterpolatorT<2> sI(vCoord);
-      return sI.template interpolateInside<T,T,1>(pCoord,z);
-    }
-    */
     
     template <class T, class RT=T, class CT=T>
     static RT interpolateZ(const T vCoord[][NDIM], const T pCoord[NDIM])
@@ -915,7 +586,7 @@ namespace internal {
       else return interpolateX<T,RT,CT>(checkedVCoord,pCoord);
     }
 
-    //#ifdef DEBUG_ME
+
   private:
     static bool findVertex(double x1,double y1,double z1,double vx, double vy, double vz, double tol=2.E-5)
     {
@@ -927,7 +598,7 @@ namespace internal {
 	}
       return false;
     }
-    //#endif
+
   };
 
 }
@@ -936,5 +607,5 @@ namespace internal {
 #undef DEBUG_ME
 #endif
 
-#include "../../internal/namespace.footer"
+#include "../../../internal/namespace.footer"
 #endif

@@ -2,9 +2,9 @@
 #define __POINT_IN_SIMPLEX_BASE_2D_HXX__
 
 #include "pointInSimplexBasePrototype.hxx"
-#include "../predicates/orientation.hxx"
+#include "../orientation.hxx"
 
-#include "../../internal/namespace.header"
+#include "../../../internal/namespace.header"
 
 namespace internal {
   
@@ -14,15 +14,7 @@ namespace internal {
   public:
     static const int NDIM=2;
     typedef predicate::OrientationT<2,filterType> Orientation;
-    /*
-    template <class T, class T2, class T3>
-    static int getRayIntersection(const T vCoord[][NDIM], const T pCoord[NDIM], 
-				  const int dim, T2 faceIndex[2], T3 zCoord[2])
-    {
-      printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
-      exit(-1);
-    }
-    */
+
     template <class T, class T2>
     static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
 				       const int dim, T2 &zCoord)
@@ -153,79 +145,7 @@ namespace internal {
       return c;
     }
 
-    /*
-public:
-    // Check whether a point is inside or outside a simplex with vertices vCoord. This also
-    // work for any polygon with any number of vertices.
-    // This will consistently return true or false, no boundary here ...
-    // from http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
-    template <class T>
-    static int test11(const T vCoord[][NDIM], const T* const pCoord)
-    {
-      int i, j, c = 0;
-      for (i = 0, j = NDIM; i < NDIM+1; j = i++) {
-	if  ((vCoord[i][1]>pCoord[1]) != (vCoord[j][1]>pCoord[1]))
-	  {
-	    if (pCoord[1]!=vCoord[j][1])
-	      {
-		
-		// if (((vCoord[j][0]-vCoord[i][0])/(vCoord[j][1]-vCoord[i][1])*
-		//      (pCoord[1]-vCoord[i][1])  + vCoord[i][0]) != 
-		//     ((vCoord[j][0]-vCoord[i][0])*(pCoord[1]-vCoord[i][1])/
-		//      (vCoord[j][1]-vCoord[i][1]) + vCoord[i][0]))
-		       
-		//   {
-		//     printf("FIDD\n");
-		//     printf("%.18lg/%.18lg*%.18lg+%.18lg = %.18lg != %.18lg\n",
-		// 	   (vCoord[j][0]-vCoord[i][0]),
-		// 	   (vCoord[j][1]-vCoord[i][1]),
-		// 	   (pCoord[1]-vCoord[i][1]),
-		// 	   vCoord[i][0],
-		// 	   (vCoord[j][0]-vCoord[i][0])/(vCoord[j][1]-vCoord[i][1])*
-		// 	   (pCoord[1]-vCoord[i][1])  + vCoord[i][0],
-		// 	   (vCoord[j][0]-vCoord[i][0])*(pCoord[1]-vCoord[i][1])/
-		// 	   (vCoord[j][1]-vCoord[i][1]) + vCoord[i][0]);
-		//     exit(-1);
-		//   }
-		
-	      }
-
-	    if (pCoord[1]==vCoord[j][1])
-	      {
-		if (pCoord[0]<vCoord[j][0]) c = !c;
-	      }
-	    else if ( pCoord[0] < 
-		      (vCoord[j][0]-vCoord[i][0])/(vCoord[j][1]-vCoord[i][1])*
-		      (pCoord[1]-vCoord[i][1])  + vCoord[i][0] )
-	      {
-		c = !c;
-	      }
-	  }
-	    
-      }
-      return c;
-    }
-    
-    // Check wether a point is inside or outside a simplex with vertices vCoord. This also
-    // work for any polygon with any number of vertices.
-    // This will consistently return true or false, no boundary here ...
-    // from http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
-    template <class T>
-    static int test22(const T vCoord[][NDIM], const T* const pCoord)
-    {
-      int i, j, c = 0;
-      for (i = 0, j = NDIM; i < NDIM+1; j = i++) {
-	if ( ((vCoord[i][1]>pCoord[1]) != (vCoord[j][1]>pCoord[1])) &&
-	     ( 
-	      ((pCoord[1]==vCoord[j][1])&&(pCoord[0]<vCoord[j][0])) ||
-	      (pCoord[0] < (vCoord[j][0]-vCoord[i][0])/(vCoord[j][1]-vCoord[i][1])*(pCoord[1]-vCoord[i][1])  + vCoord[i][0])
-	       ) 
-	     )
-	  c = !c;
-      }
-      return c;
-    }
-
+/*
     static int pnpolyC(int nvert, double *vertx, double *verty, double testx, double testy)
     {
       int i, j, c = 0;
@@ -295,5 +215,5 @@ public:
 
 } // namespace internal
  
-#include "../../internal/namespace.footer"
+#include "../../../internal/namespace.footer"
 #endif
