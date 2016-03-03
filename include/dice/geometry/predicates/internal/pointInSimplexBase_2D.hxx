@@ -193,7 +193,16 @@ namespace internal {
     template <class T>
     static int test1D(const T vCoord[][1], const T pCoord[1])
     {
-      if ((pCoord[0]<=vCoord[0][0])||(pCoord[0]>vCoord[1][0])) return 0;
+      
+      if (vCoord[0][0]<vCoord[1][0])
+	{
+	  if ((pCoord[0]<=vCoord[0][0])||(pCoord[0]>vCoord[1][0])) return 0;
+	}
+      else
+	{
+	  if ((pCoord[0]<=vCoord[1][0])||(pCoord[0]>vCoord[0][0])) return 0;
+	}
+	
       return 1;
     }
 
