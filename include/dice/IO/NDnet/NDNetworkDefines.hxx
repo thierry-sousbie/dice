@@ -7,13 +7,14 @@
 #include <stdio.h>
 
 #include "../../tools/types/types.hxx"
+#include "../../tools/IO/IOHelpers.hxx"
 
 #include "../../internal/namespace.header"
 
-#define NDNET_UINT                UINT
-#define NDNET_INT                 INT
-#define NDNET_FLOAT               FLOAT
-#define NDNET_IDCUMT              long
+// #define NDNET_UINT                UINT
+// #define NDNET_INT                 INT
+// #define NDNET_FLOAT               FLOAT
+// #define NDNET_IDCUMT              long
 
 #define NDNETWORK_DATA_STR_SIZE  16
 #define NDNETWORK_TAG            "NDNETWORK"
@@ -40,9 +41,15 @@ namespace IO {
     void *data;
   };
 
+  template <class UI = UINT, class I = INT, class F = FLOAT, class IDC = long>
   class NDnetwork
   {
   public:
+
+    typedef UI NDNET_UINT;
+    typedef I NDNET_INT;
+    typedef F NDNET_FLOAT;
+    typedef IDC NDNET_IDCUMT;
 
     char comment[80];
     int periodicity;
@@ -93,30 +100,7 @@ namespace IO {
 	      const char *cmt, bool periodic)
     {
       //memset(&(*this),0,sizeof(NDnetwork));
-
-      strcpy(comment,"NO COMMENT");
-      periodicity=0;
-      ndims=0;ndims_net=0;
-      isSimpComplex=0;
-      x0=NULL;delta=NULL;
-      indexSize=0;cumIndexSize=0;
-      floatSize=0;
-      nvertex=0;
-      v_coord=NULL;
-      nfaces=NULL;
-      f_numVertexIndexCum=NULL;
-      f_vertexIndex=NULL;
-      haveFaceFromVertex=NULL;
-      v_numFaceIndexCum=NULL;
-      v_faceIndex=NULL;
-      haveFaceFromFace=NULL;
-      f_numFaceIndexCum=NULL;
-      f_faceIndex=NULL;
-      nsupData=0;supData=NULL;
-      ndata=0;data=NULL;
-      haveVFlags=0;haveFFlags=NULL;
-      v_flag=NULL;f_flag=NULL;
-   
+      setNULL();
       create(nDimsW,nDims,nCells);
       strcpy(comment,cmt);
       if (periodic) periodicity=((1<<nDims)-1);
@@ -137,6 +121,50 @@ namespace IO {
       freeData();
     }
 
+    static int IsNDnetwork(const char *filename)
+    {
+      int i;
+      char tag[NDNETWORK_DATA_STR_SIZE+2];
+      FILE *f;
+      int swap=0;
+  
+      memset(tag,0,16*sizeof(char));
+   
+      if(!(f = fopen(filename,"r")))
+	{
+	  fprintf(stderr,"File %s does not exist.\n",filename);
+	  return 0;
+	}
+
+      myIO::fread(&i,sizeof(int),1,f,swap);
+      if (i!=NDNETWORK_DATA_STR_SIZE) swap=1-swap;
+      myIO::fread(tag,sizeof(char),NDNETWORK_DATA_STR_SIZE,f,swap);
+      myIO::fread(&i,sizeof(int),1,f,swap);
+  
+      fclose(f); 
+      tag[NDNETWORK_DATA_STR_SIZE+1]='\0';
+
+      if (strcmp(tag,NDNETWORK_TAG)) 
+	{
+	  f = fopen(filename,"r");
+	  char *line=NULL;int n;
+	  myIO::getLine(&line,&n,f);      
+	  fclose(f);
+      
+	  line[strlen(line)-1]='\0';
+	  if (!strcmp(line,NDNETWORK_ASCII_TAG)) 
+	    {
+	      free(line);
+	      return 2;
+	    }
+
+	  free(line);
+	  return 0;
+	}
+
+      return 1;
+    }
+    
     void writeHeader(FILE *f)
     {
       long i,j;
@@ -171,7 +199,547 @@ namespace IO {
 
     }
 
+    int read(const char *filename, int verbose=0)
+    {
+      long i,j,k;
+      int dummy;
+      char tag[NDNETWORK_DATA_STR_SIZE];
+      FILE *f;
+      int swap=0;
+          
+      //if (IsNDnetwork(filename) == 2) return Load_NDnetwork_ASCII(filename);
+      if (IsNDnetwork(filename) != 1) return -1;
+
+      freeData();
+      //net = calloc(1,sizeof(NDnetwork));
+      memset(tag,0,NDNETWORK_DATA_STR_SIZE*sizeof(char));
+  
+      f=fopen(filename,"r");
+  
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      if (dummy!=NDNETWORK_DATA_STR_SIZE) swap = 1-swap;
+      myIO::fread(tag,sizeof(char),NDNETWORK_DATA_STR_SIZE,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+      if (strcmp(tag,NDNETWORK_TAG))
+	{
+	  fclose(f);
+	  fprintf (stderr,"File %s has an unknown format.\n",filename);
+	  return -2;
+	}
+  
+      j=sizeof(int);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(&ndims,sizeof(int),1,f,swap);
+      myIO::fread(&ndims_net,sizeof(int),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      if (verbose>0)
+	printf ("Loading %dD network from file \"%s\" ...",ndims,filename);fflush(0);
+
+      x0=malloc(ndims*sizeof(double));
+      delta=malloc(ndims*sizeof(double));
+
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(comment,sizeof(char),80,f,swap);
+      myIO::fread(&periodicity,sizeof(int),1,f,swap);
+      myIO::fread(&isSimpComplex,sizeof(int),1,f,swap);
+      myIO::fread(x0,sizeof(double),ndims,f,swap);
+      myIO::fread(delta,sizeof(double),ndims,f,swap);
+      myIO::fread(&indexSize,sizeof(int),1,f,swap);
+      if (indexSize != 8) indexSize=4;
+      myIO::fread(&cumIndexSize,sizeof(int),1,f,swap);
+      if (cumIndexSize != 8) cumIndexSize=4;
+      myIO::fread(&floatSize,sizeof(int),1,f,swap);
+      if (floatSize != 8) floatSize=4;
+      myIO::fread(dummy,sizeof(char),160-3*sizeof(int),f,swap);
+      //myIO::fread(&nvertex,sizeof(NDNET_UINT),1,f,swap);
+      myIO::fread_ului(&nvertex,sizeof(NDNET_UINT),1,indexSize,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+      // FIXME : NO SUPPORT FOR DOUBLE COORDS IMPLEMENTED, JUST CONVERTING NOW
+      // should be:
+      // myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+      //j=ndims*nvertex;
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      v_coord=malloc(sizeof(float)*(size_t)ndims*(size_t)nvertex);
+      //printf("->%ld\n",(unsigned long)v_coord);
+      v_coord=myIO::fread_fd(v_coord,sizeof(float),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+      // whatever the input format, it is always converted single precision !
+      floatSize = sizeof(float);
+      //printf("=->%ld\n",(unsigned long)v_coord);
+      //myIO::fread(v_coord,sizeof(float)*(size_t)ndims*(size_t)nvertex,1,f,swap);   
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      //j=(1+ndims)*sizeof(uint);
+      nfaces=malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread_ului(nfaces,sizeof(NDNET_UINT),((size_t)ndims+1),indexSize,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      //j=(1+ndims)*sizeof(int);
+      haveVertexFromFace=malloc(sizeof(int)*((size_t)ndims+1));
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(haveVertexFromFace,sizeof(int)*((size_t)ndims+1),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      f_vertexIndex = calloc(sizeof(NDNET_UINT*),(1+ndims));
+      f_numVertexIndexCum = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+
+      for (i=0;i<1+ndims;i++)
+	{    
+      
+	  if (haveVertexFromFace[i])
+	    {
+	      if (!isSimpComplex)
+		{
+	    
+		  //j=sizeof(uint)*((size_t)nfaces[i]+1);
+		  f_numVertexIndexCum[i]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		  myIO::fread_ului(f_numVertexIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),cumIndexSize,f,swap);
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    
+		  //j=sizeof(uint)*((size_t)f_numVertexIndexCum[i][nfaces[i]]);
+		  f_vertexIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)f_numVertexIndexCum[i][nfaces[i]]));
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		  myIO::fread_ului(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)f_numVertexIndexCum[i][nfaces[i]]),indexSize,f,swap);
+		  myIO::fread(&dummy,sizeof(int),1,f,swap); 
+		}
+	      else
+		{
+		  //j=sizeof(uint)*((size_t)(i+1)*nfaces[i]);
+		  f_vertexIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)(i+1)*nfaces[i]));
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		  myIO::fread_ului(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)(i+1)*nfaces[i]),indexSize,f,swap);
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		}
+	  
+	    }
+	}
+  
+      j=(1+ndims)*sizeof(int);
+      haveFaceFromVertex=malloc(sizeof(int)*((size_t)ndims+1));
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(haveFaceFromVertex,sizeof(int)*((size_t)ndims+1),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      v_faceIndex = calloc(sizeof(NDNET_UINT*),(1+ndims));
+      v_numFaceIndexCum = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+      //printf("%ld == %d\n",sizeof(NDNET_IDCUMT),cumIndexSize);
+      for (i=0;i<1+ndims;i++)
+	{     
+	  //printf("HELLO %ld\n",i);
+	  if (haveFaceFromVertex[i])
+	    {
+	      //j=sizeof(uint)*((size_t)nvertex+1);
+	
+	      v_numFaceIndexCum[i]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nvertex+1));
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread_ului(v_numFaceIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nvertex+1),cumIndexSize,f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	  
+	      //j=sizeof(uint)*((size_t)v_numFaceIndexCum[i][nvertex]);
+	      v_faceIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)v_numFaceIndexCum[i][nvertex]));
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread_ului(v_faceIndex[i],sizeof(NDNET_UINT),((size_t)v_numFaceIndexCum[i][nvertex]),indexSize,f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);	  
+	    }
+	}
+  
+      haveFaceFromFace =calloc(sizeof(int *),(1+ndims));
+      f_faceIndex = calloc(sizeof(NDNET_UINT**),(1+ndims));
+      f_numFaceIndexCum = calloc(sizeof(NDNET_IDCUMT**),(1+ndims));
+
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      for (k=0;k<ndims+1;k++)
+	{
+	  f_faceIndex[k] = calloc(sizeof(NDNET_UINT*),(1+ndims));
+	  f_numFaceIndexCum[k] = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+
+	  haveFaceFromFace[k]=malloc(sizeof(int)*((size_t)ndims+1));
+	  myIO::fread(haveFaceFromFace[k],sizeof(int)*((size_t)ndims+1),1,f,swap);
+	}   
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      for (i=0;i<1+ndims;i++)
+	{
+	  for (k=0;k<1+ndims;k++)
+	    {
+	  
+	      if (haveFaceFromFace[i][k])
+		{
+		  //j=sizeof(uint)*(1+(size_t)nfaces[i]);
+		  f_numFaceIndexCum[i][k]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		  myIO::fread_ului(f_numFaceIndexCum[i][k],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),cumIndexSize,f,swap);
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      
+		  //j=sizeof(uint)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]);
+		  f_faceIndex[i][k]=malloc(sizeof(NDNET_UINT)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]));
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);
+		  myIO::fread_ului(f_faceIndex[i][k],sizeof(NDNET_UINT),((size_t)f_numFaceIndexCum[i][k][nfaces[i]]),indexSize,f,swap);
+		  myIO::fread(&dummy,sizeof(int),1,f,swap);	  
+		}
+	    }
+	}
+
+      j=sizeof(int);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(&haveVFlags,sizeof(int),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      if (haveVFlags)
+	{
+	  j=sizeof(unsigned char)*nvertex;
+	  v_flag=malloc(sizeof(unsigned char)*(size_t)nvertex);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	  myIO::fread(v_flag,sizeof(unsigned char),(size_t)nvertex,f,swap);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	}
+
+      haveFFlags=calloc(ndims+1,sizeof(int));
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(haveFFlags,sizeof(int),(ndims+1),f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+      f_flag=calloc(ndims+1,sizeof(unsigned char *));
+  
+      for (i=0;i<1+ndims;i++)
+	if (haveFFlags[i])
+	  {	  
+	    j=sizeof(unsigned char)*nfaces[i];
+	 
+	    if (j) f_flag[i]=malloc(sizeof(unsigned char)*(size_t)nfaces[i]);
+	    myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    if (j) myIO::fread(f_flag[i],sizeof(unsigned char),(size_t)nfaces[i],f,swap);
+	    myIO::fread(&dummy,sizeof(int),1,f,swap);
+	  }
+
+  
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(&ndata,sizeof(int),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+
+      data=malloc(sizeof(NDnetwork_Data)*ndata);
+      for (i=0;i<ndata;i++)
+	{     
+	  //j=sizeof(int)+255*sizeof(char);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	  myIO::fread(&(data[i].type),sizeof(int),1,f,swap);
+	  myIO::fread(data[i].name,sizeof(char)*255,1,f,swap);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+	  if (data[i].type==0)
+	    {
+	      //j=sizeof(double)*nvertex;
+	      data[i].data=malloc(sizeof(double)*(size_t)nvertex);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread(data[i].data,sizeof(double),(size_t)nvertex,f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    }
+	  else
+	    {
+	      //j=sizeof(double)*nfaces[data[i].type];
+	      data[i].data=malloc(sizeof(double)*(size_t)nfaces[data[i].type]);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread(data[i].data,sizeof(double),(size_t)nfaces[data[i].type],f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    }  
+	}
+
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(&nsupData,sizeof(int),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+      supData=malloc(sizeof(NDnetwork_SupData)*nsupData);
+      for (i=0;i<nsupData;i++)
+	{     
+	  j=sizeof(int)+255*sizeof(char);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+	  myIO::fread(&(supData[i].type),sizeof(int),1,f,swap);
+	  myIO::fread(supData[i].name,sizeof(char)*255,1,f,swap);
+	  myIO::fread(&(supData[i].datasize),sizeof(int),1,f,swap);
+	  myIO::fread(supData[i].datatype,sizeof(char)*255,1,f,swap);
+	  myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+	  if (supData[i].type==0)
+	    {
+	      //j=(size_t)supData[i].datasize*nvertex;
+	      supData[i].data=malloc((size_t)supData[i].datasize*(size_t)nvertex);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread(supData[i].data,(size_t)supData[i].datasize,(size_t)nvertex,f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    }
+	  else
+	    {
+	      //j=(size_t)supData[i].datasize*nfaces[supData[i].type];
+	      supData[i].data=malloc((size_t)supData[i].datasize*(size_t)nfaces[supData[i].type]);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	      myIO::fread(supData[i].data,(size_t)supData[i].datasize,(size_t)nfaces[supData[i].type],f,swap);
+	      myIO::fread(&dummy,sizeof(int),1,f,swap);
+	    }  
+	}
+
+      fclose(f);
+      if (verbose>0) printf (" done.\n");
+      return 0;
+    }
+
+    int write(const char *filename, int verbose=0)
+    {
+      int j;
+      long i,k;
+      char tag[NDNETWORK_DATA_STR_SIZE];
+      FILE *f;
+  
+      if (verbose>1) printf ("Saving %dD network to file %s ...",ndims,filename);fflush(0);
+
+      memset(tag,0,NDNETWORK_DATA_STR_SIZE*sizeof(char));
+      strcpy(tag,NDNETWORK_TAG);
+      i=NDNETWORK_DATA_STR_SIZE;
+  
+      f=fopen(filename,"w");
+      fwrite(&i,sizeof(int),1,f);
+      fwrite(tag,sizeof(char),NDNETWORK_DATA_STR_SIZE,f);
+      fwrite(&i,sizeof(int),1,f);
+
+      j=sizeof(int)*2;
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(&ndims,sizeof(int),1,f);
+      fwrite(&ndims_net,sizeof(int),1,f);
+      fwrite(&j,sizeof(int),1,f);  
+      j=sizeof(NDNET_UINT)+sizeof(int)*4+80*sizeof(char)+ndims*sizeof(double)*2+152*sizeof(char);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(comment,sizeof(char),80,f);
+      fwrite(&periodicity,sizeof(int),1,f);
+      fwrite(&isSimpComplex,sizeof(int),1,f);
+      fwrite(x0,sizeof(double),ndims,f);
+      fwrite(delta,sizeof(double),ndims,f);
+      fwrite(&indexSize,sizeof(int),1,f);
+      fwrite(&cumIndexSize,sizeof(int),1,f);
+      fwrite(dummy,sizeof(char),160-8,f);
+      fwrite(&nvertex,sizeof(NDNET_UINT),1,f);
+      fwrite(&j,sizeof(int),1,f);
+  
+      j=ndims*nvertex;
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(v_coord,sizeof(float),(size_t)ndims*(size_t)nvertex,f);
+      fwrite(&j,sizeof(int),1,f);
+  
+      j=(1+ndims)*sizeof(NDNET_UINT);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(nfaces,sizeof(NDNET_UINT),((size_t)ndims+1),f);
+      fwrite(&j,sizeof(int),1,f);
+
+      j=(1+ndims)*sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(haveVertexFromFace,sizeof(int),((size_t)ndims+1),f);
+      fwrite(&j,sizeof(int),1,f);
+
+  
+      for (i=0;i<1+ndims;i++)
+	{
+      
+	  if (haveVertexFromFace[i])
+	    {
+	      if (!isSimpComplex)
+		{
+		  j=sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1);
+		  fwrite(&j,sizeof(int),1,f);
+		  fwrite(f_numVertexIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),f);
+		  fwrite(&j,sizeof(int),1,f);
+
+		  j=sizeof(NDNET_UINT)*((size_t)f_numVertexIndexCum[i][nfaces[i]]);
+		  fwrite(&j,sizeof(int),1,f);
+		  fwrite(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)f_numVertexIndexCum[i][nfaces[i]]),f);
+		  fwrite(&j,sizeof(int),1,f);
+		}
+	      else
+		{
+		  j=sizeof(NDNET_UINT)*((size_t)(i+1)*nfaces[i]);
+		  fwrite(&j,sizeof(int),1,f);
+		  fwrite(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)(i+1)*nfaces[i]),f);
+		  fwrite(&j,sizeof(int),1,f);
+		}
+	  
+	    }
+	}
+  
+      j=(1+ndims)*sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(haveFaceFromVertex,sizeof(int),((size_t)ndims+1),f);
+      fwrite(&j,sizeof(int),1,f);
+
+      for (i=0;i<1+ndims;i++)
+	{
+      
+	  if (haveFaceFromVertex[i])
+	    {
+	      j=sizeof(NDNET_IDCUMT)*((size_t)nvertex+1);
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(v_numFaceIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nvertex+1),f);
+	      fwrite(&j,sizeof(int),1,f);
+	  
+	      j=sizeof(NDNET_UINT)*((size_t)v_numFaceIndexCum[i][nvertex]);
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(v_faceIndex[i],sizeof(NDNET_UINT),((size_t)v_numFaceIndexCum[i][nvertex]),f);
+	      fwrite(&j,sizeof(int),1,f);	  
+	    }
+	}
+  
+      j=(1+ndims)*(1+ndims)*sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      for (k=0;k<ndims+1;k++)
+	fwrite(haveFaceFromFace[k],sizeof(int),((size_t)ndims+1),f);
+      fwrite(&j,sizeof(int),1,f);
+
+      for (i=0;i<1+ndims;i++)
+	{
+	  for (k=0;k<1+ndims;k++)
+	    {
+
+	      if (haveFaceFromFace[i][k])
+		{
+		  j=sizeof(NDNET_IDCUMT)*(1+(size_t)nfaces[i]);
+		  fwrite(&j,sizeof(int),1,f);
+		  fwrite(f_numFaceIndexCum[i][k],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),f);
+		  fwrite(&j,sizeof(int),1,f);
+	      
+		  j=sizeof(NDNET_UINT)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]);
+		  fwrite(&j,sizeof(int),1,f);
+		  fwrite(f_faceIndex[i][k],sizeof(NDNET_UINT),((size_t)f_numFaceIndexCum[i][k][nfaces[i]]),f);
+		  fwrite(&j,sizeof(int),1,f);	  
+		}
+	    }
+	}
+
+      j=sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(&haveVFlags,sizeof(int),1,f);
+      fwrite(&j,sizeof(int),1,f);
+
+      if (haveVFlags)
+	{
+	  j=sizeof(unsigned char)*nvertex;
+	  fwrite(&j,sizeof(int),1,f);
+	  fwrite(v_flag,sizeof(unsigned char),(size_t)nvertex,f);
+	  fwrite(&j,sizeof(int),1,f);
+	}
+
+  
+      j=sizeof(int)*(ndims+1);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(haveFFlags,sizeof(int),(ndims+1),f);
+      fwrite(&j,sizeof(int),1,f);
+  
+      for (i=0;i<1+ndims;i++)
+	if (haveFFlags[i])
+	  {
+	    j=sizeof(unsigned char)*nfaces[i];
+	    fwrite(&j,sizeof(int),1,f);
+	    if (j) fwrite(f_flag[i],sizeof(unsigned char),(size_t)nfaces[i],f);
+	    fwrite(&j,sizeof(int),1,f);
+	  }
+
+      j=sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(&ndata,sizeof(int),1,f);
+      fwrite(&j,sizeof(int),1,f);
+  
+      for (i=0;i<ndata;i++)
+	{
+      
+	  j=sizeof(int)+255*sizeof(char);
+	  fwrite(&j,sizeof(int),1,f);
+	  fwrite(&(data[i].type),sizeof(int),1,f);
+	  fwrite(data[i].name,sizeof(char)*255,1,f);
+	  fwrite(&j,sizeof(int),1,f);
+
+	  if (data[i].type==0)
+	    {
+	      j=sizeof(double)*nvertex;
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(data[i].data,sizeof(double),(size_t)nvertex,f);
+	      fwrite(&j,sizeof(int),1,f);
+	    }
+	  else
+	    {
+	      j=sizeof(double)*nfaces[data[i].type];
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(data[i].data,sizeof(double),(size_t)nfaces[data[i].type],f);
+	      fwrite(&j,sizeof(int),1,f);
+	    }  
+	}
+
+      j=sizeof(int);
+      fwrite(&j,sizeof(int),1,f);
+      fwrite(&nsupData,sizeof(int),1,f);
+      fwrite(&j,sizeof(int),1,f);
+  
+      for (i=0;i<nsupData;i++)
+	{
+      
+	  j=2*sizeof(int)+2*255*sizeof(char);
+	  fwrite(&j,sizeof(int),1,f);
+	  fwrite(&(supData[i].type),sizeof(int),1,f);
+	  fwrite(supData[i].name,sizeof(char)*255,1,f);
+	  fwrite(&(supData[i].datasize),sizeof(int),1,f);
+	  fwrite(supData[i].datatype,sizeof(char)*255,1,f);
+	  fwrite(&j,sizeof(int),1,f);
+
+	  if (supData[i].type==0)
+	    {
+	      j=(size_t)supData[i].datasize*nvertex;
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(supData[i].data,(size_t)supData[i].datasize,(size_t)nvertex,f);
+	      fwrite(&j,sizeof(int),1,f);
+	    }
+	  else
+	    {
+	      j=(size_t)supData[i].datasize*nfaces[supData[i].type];
+	      fwrite(&j,sizeof(int),1,f);
+	      fwrite(supData[i].data,(size_t)supData[i].datasize,(size_t)nfaces[supData[i].type],f);
+	      fwrite(&j,sizeof(int),1,f);
+	    }  
+	}
+
+ 
+
+      fclose(f);
+      if (verbose>1) printf (" done.\n");
+      return 0;
+    }
+
+
   private:
+    void setNULL()
+    {
+      strcpy(comment,"NO COMMENT");
+      periodicity=0;
+      ndims=0;ndims_net=0;
+      isSimpComplex=0;
+      x0=NULL;delta=NULL;
+      indexSize=0;cumIndexSize=0;
+      floatSize=0;
+      nvertex=0;
+      v_coord=NULL;
+      nfaces=NULL;
+      f_numVertexIndexCum=NULL;
+      f_vertexIndex=NULL;
+      haveFaceFromVertex=NULL;
+      v_numFaceIndexCum=NULL;
+      v_faceIndex=NULL;
+      haveFaceFromFace=NULL;
+      f_numFaceIndexCum=NULL;
+      f_faceIndex=NULL;
+      nsupData=0;supData=NULL;
+      ndata=0;data=NULL;
+      haveVFlags=0;haveFFlags=NULL;
+      v_flag=NULL;f_flag=NULL;
+    }
+    
     template <class T>
     void create(int ndims_, int ndims_net_, T nCells[])
     {   
@@ -294,6 +862,7 @@ namespace IO {
 	  free(supData[i].data);
 	}
       free(supData);
+      setNULL();
     }
    
   };
