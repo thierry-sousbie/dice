@@ -28,8 +28,11 @@ get_property(myIncludesVar
   DIRECTORY 
   PROPERTY INCLUDE_DIRECTORIES)
 string(REPLACE ";" " -I" myIncludes "${myIncludesVar}")
+string(REPLACE "${PROJECT_SOURCE_DIR}" "${CMAKE_INSTALL_PREFIX}" myInstalledIncludes "${myIncludes}")
+string(REPLACE "/external" "/dice/external" myInstalledIncludes "${myInstalledIncludes}")
 
-file(APPEND dice-config.hxx "char INCLUDES[]=\" -I${myIncludes}\";\n" )
+file(APPEND dice-config.hxx "char INCLUDES[]=\" -I${myInstalledIncludes}\";\n" )
+file(APPEND dice-config.hxx "char DIST_INCLUDES[]=\" -I${myIncludes}\";\n" )
 
 get_property(myLibrariesVar 
   TARGET ${MAIN_BINARY_NAME}

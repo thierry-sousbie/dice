@@ -23,13 +23,18 @@ int main(int argc, char **argv)
       int oldFound=nFound;
       int all=arg==std::string("-all");
       int allButFlags=arg==std::string("-all_noflags");
+      int distAll=arg==std::string("-dist_all");
+      int distAllButFlags=arg==std::string("-dist_all_noflags");
+
       if (allButFlags) all=1;
+      if (distAllButFlags) distAll=1;
       
-      if ((arg==std::string("-compiler"))||all) {printf(" %s ",COMPILER);nFound++;}
-      if (((arg==std::string("-flags"))||all)&&(!allButFlags)) {printf(" %s ",CXX_FLAGS);nFound++;}
+      if ((arg==std::string("-compiler"))||all||distAll) {printf(" %s ",COMPILER);nFound++;}
+      if ((arg==std::string("-flags"   ))||(all&&(!allButFlags))||(distAll&&(!distAllButFlags))) {printf(" %s ",CXX_FLAGS);nFound++;}
       if ((arg==std::string("-includes"))||all) {printf(" %s ",INCLUDES);nFound++;}
-      if ((arg==std::string("-defines"))||all) {printf(" %s ",DEFINES);nFound++;}
-      if ((arg==std::string("-libs"))||all) {printf(" %s ",LIBRARIES);nFound++;}
+      if ((arg==std::string("-dist_includes"))||distAll) {printf(" %s ",DIST_INCLUDES);nFound++;}
+      if ((arg==std::string("-defines"))||all||distAll) {printf(" %s ",DEFINES);nFound++;}
+      if ((arg==std::string("-libs"))||all||distAll) {printf(" %s ",LIBRARIES);nFound++;}
       
       if (oldFound==nFound) 
 	{

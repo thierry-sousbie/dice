@@ -3,6 +3,7 @@ cmake_policy(PUSH)
 cmake_minimum_required(VERSION 2.6.3)
 cmake_policy(POP)
 
+
 INCLUDE (CheckCXXSourceCompiles)
 SET(CMAKE_CXX_FLAGS_BACKUP ${CMAKE_CXX_FLAGS})
 UNSET(NATIVE_FLAGS_FOUND CACHE)
@@ -44,4 +45,5 @@ if(NOT NATIVE_FLAGS_FOUND)
 endif()
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_BACKUP})
+
 
