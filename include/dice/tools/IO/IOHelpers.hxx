@@ -45,8 +45,6 @@ namespace myIO {
     return makeDir(name.c_str());
   }
   
-  
-
   // prototype of generic functions for swapping
   int swapI(int);
   float swapF(float);
@@ -148,6 +146,110 @@ namespace myIO {
       }
   
     return ret;
+  }
+  
+  /*
+  size_t fwrite_dummy(size_t size, size_t nmemb,FILE *stream)
+  {
+    char buffer[FWRITE_DUMMY_BFR_SIZE];
+    unsigned long bsize=FWRITE_DUMMY_BFR_SIZE/size;
+    unsigned long nleft=nmemb;
+    size_t ret=0;
+    
+    while(nleft>0)
+      {
+	unsigned long nw=(nleft<bsize)?nleft:bsize;
+	ret+=fwrite(buffer,size,nw,stream);
+	nleft-=nw;
+      };
+
+    return ret;
+  }
+  */
+  
+  int fread_ului(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int swap)
+  {
+    int ret;
+    if (sizeIn==sizeOut)
+      return fread(data,sizeIn,nb,f,swap);
+    else if (sizeIn<sizeOut)
+      {
+	long i;
+	ret=fread(data,sizeIn,nb,f,swap);
+	unsigned long int *uo = (unsigned long int *)(data);
+	unsigned int *ui = (unsigned int *)(data);
+      
+	for (i=nb;i>=0;i--)
+	  uo[i]=(unsigned long int) ui[i];
+      }
+    else
+      {      
+	if (nb==1)
+	  {
+	    unsigned long int in;
+	    unsigned int *uo = (unsigned int *)(data);
+	    ret=fread(&in,sizeIn,nb,f,swap);
+	    (*uo)= (unsigned int) in;
+	    return ret;
+	  }
+	unsigned long i;
+	data=realloc(data,sizeIn*nb);
+	ret=fread(data,sizeIn,nb,f,swap);
+	unsigned long int *ui = (unsigned long int *)(data);
+	unsigned int *uo = (unsigned int *)(data);
+	//assert(0);
+	for (i=0;i<nb;i++)
+	  uo[i]=(unsigned int) ui[i];
+	
+	data=realloc(data,sizeOut*nb);
+	//assert(0);
+      }
+    return ret;
+  }
+
+  void* fread_fd(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int swap)
+  {
+    //int ret;  
+    if (sizeIn==sizeOut)
+      {
+	fread(data,sizeIn,nb,f,swap);
+	return data;
+      }
+    else if (sizeIn<sizeOut)
+      {
+	long i;
+	fread(data,sizeIn,nb,f,swap);
+	double *uo = (double *)(data);
+	float *ui = (float *)(data);
+      
+	for (i=nb;i>=0;i--)
+	  uo[i]=(double) ui[i];
+      }
+    else
+      {      
+	if (nb==1)
+	  {
+	    double in;
+	    float *uo = (float *)(data);
+	    fread(&in,sizeIn,nb,f,swap);
+	    (*uo)= (float) in;
+	    return data;
+	  }
+	unsigned long i;
+	data=realloc(data,sizeIn*nb);
+      
+	fread(data,sizeIn,nb,f,swap);
+	double *ui = (double *)(data);
+	float *uo = (float *)(data);
+	//assert(0);
+	for (i=0;i<nb;i++)
+	  uo[i]=(float) ui[i];
+	
+	data=realloc(data,sizeOut*nb);
+      
+	//assert(0);
+      } 
+    return data;
   }
 
 
@@ -350,6 +452,61 @@ namespace myIO {
       }
   }
 
+  ssize_t
+  getDelim (char **lineptr, int *n, int delim, FILE *stream)
+  {
+    static const int line_size=1024; // Default value for line length.
+    int indx = 0;
+    int c;
+        
+    /* Sanity checks.  */
+    if (lineptr == NULL || n == NULL || stream == NULL)
+      return -1;
+
+    /* Allocate the line the first time.  */
+    if (*lineptr == NULL)
+      {
+	*lineptr = (char *)malloc (line_size);
+	if (*lineptr == NULL)
+	  return -1;
+	*n = line_size;
+      }
+
+    /* Clear the line.  */
+    memset (*lineptr, '\0', *n);
+
+    while ((c = getc (stream)) != EOF)
+      {
+	/* Check if more memory is needed.  */
+	if (indx >= *n)
+	  {
+	    *lineptr = (char *)realloc (*lineptr, *n + line_size);
+	    if (*lineptr == NULL)
+	      {
+		return -1;
+	      }
+	    /* Clear the rest of the line.  */
+	    memset(*lineptr + *n, '\0', line_size);
+	    *n += line_size;
+	  }
+
+	/* Push the result in the line.  */
+	(*lineptr)[indx++] = c;
+
+	/* Bail out.  */
+	if (c == delim)
+	  {
+	    break;
+	  }
+      }
+    return (c == EOF) ? -1 : indx;
+  }
+
+  ssize_t getLine (char **lineptr, int *n, FILE *stream)
+  {
+    return getDelim (lineptr, n, '\n', stream);
+  }
+  
 } // myIO
 
 #include "../../internal/namespace.footer"
