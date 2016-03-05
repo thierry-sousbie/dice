@@ -61,6 +61,12 @@ namespace IO {
 
     typedef typename Vertex::LocalIndex LocalIndex;
 
+    typedef NDnetwork<> NDnet;
+    typedef typename NDnet::NDNET_UINT   NDNET_UINT;
+    typedef typename NDnet::NDNET_INT    NDNET_INT;
+    typedef typename NDnet::NDNET_FLOAT  NDNET_FLOAT;
+    typedef typename NDnet::NDNET_IDCUMT NDNET_IDCUMT;
+
     NDnetUnstructuredMeshWriterT(M *m, 
 				 long opt=NDNET_Default,
 				 const char *fileName="mesh",
@@ -149,8 +155,8 @@ namespace IO {
     
       sprintf(comment,"Local mesh");
       mesh->getBoundingBox(x0,delta);
-      NDnetwork net(NDIM,NDIM_W,x0,delta,&nCells[0],comment,
-		    M::BOUNDARY_TYPE==BoundaryType::PERIODIC);
+      NDnet net(NDIM,NDIM_W,x0,delta,&nCells[0],comment,
+		      M::BOUNDARY_TYPE==BoundaryType::PERIODIC);
 
       FILE *f = bWriter->getFilePtr();
       // header
