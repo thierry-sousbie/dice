@@ -734,6 +734,12 @@ public:
   virtual void dumpToNDnetwork_DBG(const std::string &fname_, bool completeFName=false, 
 				   bool dumpAll=false, bool withNeighbors=false)
   {
+    typedef IO::NDnetwork<> NDnet;
+    typedef typename NDnet::NDNET_UINT   NDNET_UINT;
+    typedef typename NDnet::NDNET_INT    NDNET_INT;
+    typedef typename NDnet::NDNET_FLOAT  NDNET_FLOAT;
+    typedef typename NDnet::NDNET_IDCUMT NDNET_IDCUMT;
+    
     std::vector<unsigned long> nCells = (dumpAll)?getNCellsTotal():getNCells();    
     char comment[80];
     std::string fname(fname_);
@@ -753,7 +759,7 @@ public:
 
     sprintf(comment,"Local mesh %d / %d",(int)mpiCom->rank(),(int)mpiCom->size());
     
-    IO::NDnetwork net(NDIM, NDIM_W,&params.x0[0],&params.delta[0],&nCells[0],
+    NDnet net(NDIM, NDIM_W,&params.x0[0],&params.delta[0],&nCells[0],
 		      comment,BOUNDARY_TYPE==BoundaryType::PERIODIC);
     std::vector<Vertex*> vArr=getVerticesArray();
     std::vector<GhostVertex*> gvArr;
