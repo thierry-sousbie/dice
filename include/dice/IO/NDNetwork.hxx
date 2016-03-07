@@ -145,7 +145,7 @@ namespace IO {
       freeData();
     }
 
-    bool isLoaded()
+    bool isLoaded() const
     {
       return fileLoaded;
     }
@@ -285,16 +285,19 @@ namespace IO {
       myIO::fread(x0,sizeof(double),ndims,f,swap);
       myIO::fread(delta,sizeof(double),ndims,f,swap);
       myIO::fread(&indexSize,sizeof(int),1,f,swap);
+      
       if (indexSize != 8) indexSize=4;
       myIO::fread(&cumIndexSize,sizeof(int),1,f,swap);
       if (cumIndexSize != 8) cumIndexSize=4;
       myIO::fread(&floatSize,sizeof(int),1,f,swap);
       if (floatSize != 8) floatSize=4;
-      myIO::fread(&dummy,sizeof(char),160-3*sizeof(int),f,swap);
+      char trash[256];
+      myIO::fread(trash,sizeof(char),160-3*sizeof(int),f,swap);
+      
       //myIO::fread(&nvertex,sizeof(NDNET_UINT),1,f,swap);
       myIO::fread_ului(&nvertex,sizeof(NDNET_UINT),1,indexSize,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
-  
+
       // FIXME : NO SUPPORT FOR DOUBLE COORDS IMPLEMENTED, JUST CONVERTING NOW
       // should be:
       //myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
@@ -309,7 +312,7 @@ namespace IO {
       //printf("=->%ld\n",(unsigned long)v_coord);
       //myIO::fread(v_coord,sizeof(float)*(size_t)ndims*(size_t)nvertex,1,f,swap);   
       myIO::fread(&dummy,sizeof(int),1,f,swap);
-
+      
       //j=(1+ndims)*sizeof(uint);
       nfaces=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
