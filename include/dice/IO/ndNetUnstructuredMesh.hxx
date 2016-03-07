@@ -6,8 +6,8 @@
 #include "../dice_globals.hxx"
 #include "../tools/IO/myIO.hxx"
 
-#include "./NDnet/NDNetworkDefines.hxx"
-#include "./NDnet/defaultNDnetFilters.hxx"
+#include "NDNetwork.hxx"
+#include "ndNetUnstructuredMeshFilters.hxx"
 #include "../tools/helpers/helpers.hxx"
 
 /**

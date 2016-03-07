@@ -9,7 +9,7 @@
  * @author Thierry Sousbie
  */
 
-#include "../../internal/namespace.header"
+#include "../internal/namespace.header"
 /** \addtogroup IO
  *   \{
  */
@@ -106,5 +106,5 @@ namespace IO {
 } // namespace IO
 
 /** \}*/
-#include "../../internal/namespace.footer"
+#include "../internal/namespace.footer"
 #endif

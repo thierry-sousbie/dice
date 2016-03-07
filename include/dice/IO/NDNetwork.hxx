@@ -6,10 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../../tools/types/types.hxx"
-#include "../../tools/IO/IOHelpers.hxx"
+#include "../tools/types/types.hxx"
+#include "../tools/IO/IOHelpers.hxx"
+#include "../tools/IO/console.hxx"
 
-#include "../../internal/namespace.header"
+#include "../internal/namespace.header"
 
 // #define NDNET_UINT                UINT
 // #define NDNET_INT                 INT
@@ -41,7 +42,7 @@ namespace IO {
     void *data;
   };
 
-  template <class UI = UINT, class I = INT, class F = FLOAT, class IDC = long>
+  template <class F = FLOAT, class UI = UINT, class I = INT, class IDC = long>
   class NDnetwork
   {
   public:
@@ -95,6 +96,8 @@ namespace IO {
     int nsupData;
     NDnetwork_SupData *supData;
 
+    bool fileLoaded;
+    
     template <class T1,class T2,class T3,class T4,class T5>
     NDnetwork(T1 nDims, T2 nDimsW, T3 x0_[], T4 delta_[], T5 nCells[], 
 	      const char *cmt, bool periodic)
@@ -113,12 +116,38 @@ namespace IO {
 	{
 	  x0[i]=0;
 	  delta[i]=0;
-	}     
+	}
+      fileLoaded=false;
+    }
+
+    NDnetwork()
+    {
+      setNULL();
+      fileLoaded=false;
+      /*
+      if (!IsNDnetwork(filename))
+	{
+	  dice::glb::console->printFlush<dice::LOG_ERROR>
+	  ("Invalid initial conditions type: '%s'.\n",icType.c_str());
+	  fprintf(stderr,"ERROR loading file")
+	  isLoaded=false;
+	}
+      else
+	{
+	  read(fname);
+	  isLoaded=true;
+	}
+      */
     }
 
     ~NDnetwork()
     {
       freeData();
+    }
+
+    bool isLoaded()
+    {
+      return fileLoaded;
     }
 
     static int IsNDnetwork(const char *filename)
@@ -132,7 +161,9 @@ namespace IO {
    
       if(!(f = fopen(filename,"r")))
 	{
-	  fprintf(stderr,"File %s does not exist.\n",filename);
+	  glb::console->printFlush<LOG_WARNING>
+	  ("File %s does not exist.\n",filename);
+	  //fprintf(stderr,"File %s does not exist.\n",filename);
 	  return 0;
 	}
 
@@ -208,7 +239,12 @@ namespace IO {
       int swap=0;
           
       //if (IsNDnetwork(filename) == 2) return Load_NDnetwork_ASCII(filename);
-      if (IsNDnetwork(filename) != 1) return -1;
+      if (IsNDnetwork(filename) != 1)
+	{
+	  glb::console->printFlush<LOG_WARNING>
+	    ("File %s is not a valid NDnetwork.\n",filename);
+	  return -1;
+	}
 
       freeData();
       //net = calloc(1,sizeof(NDnetwork));
@@ -227,6 +263,7 @@ namespace IO {
 	  fprintf (stderr,"File %s has an unknown format.\n",filename);
 	  return -2;
 	}
+      
   
       j=sizeof(int);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -235,10 +272,11 @@ namespace IO {
       myIO::fread(&dummy,sizeof(int),1,f,swap);
 
       if (verbose>0)
-	printf ("Loading %dD network from file \"%s\" ...",ndims,filename);fflush(0);
+	 glb::console->printFlush<LOG_STD>
+	   ("Loading %dD network from file \"%s\" ...",ndims,filename);
 
-      x0=malloc(ndims*sizeof(double));
-      delta=malloc(ndims*sizeof(double));
+      x0=(double*)malloc(ndims*sizeof(double));
+      delta=(double*)malloc(ndims*sizeof(double));
 
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       myIO::fread(comment,sizeof(char),80,f,swap);
@@ -252,19 +290,20 @@ namespace IO {
       if (cumIndexSize != 8) cumIndexSize=4;
       myIO::fread(&floatSize,sizeof(int),1,f,swap);
       if (floatSize != 8) floatSize=4;
-      myIO::fread(dummy,sizeof(char),160-3*sizeof(int),f,swap);
+      myIO::fread(&dummy,sizeof(char),160-3*sizeof(int),f,swap);
       //myIO::fread(&nvertex,sizeof(NDNET_UINT),1,f,swap);
       myIO::fread_ului(&nvertex,sizeof(NDNET_UINT),1,indexSize,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
   
       // FIXME : NO SUPPORT FOR DOUBLE COORDS IMPLEMENTED, JUST CONVERTING NOW
       // should be:
-      // myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+      //myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
       //j=ndims*nvertex;
       myIO::fread(&dummy,sizeof(int),1,f,swap);
-      v_coord=malloc(sizeof(float)*(size_t)ndims*(size_t)nvertex);
+      v_coord=(NDNET_FLOAT*) malloc(sizeof(NDNET_FLOAT)*(size_t)ndims*(size_t)nvertex);
       //printf("->%ld\n",(unsigned long)v_coord);
-      v_coord=myIO::fread_fd(v_coord,sizeof(float),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+      //v_coord=myIO::fread_fd(v_coord,sizeof(float),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+      myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
       // whatever the input format, it is always converted single precision !
       floatSize = sizeof(float);
       //printf("=->%ld\n",(unsigned long)v_coord);
@@ -272,19 +311,19 @@ namespace IO {
       myIO::fread(&dummy,sizeof(int),1,f,swap);
 
       //j=(1+ndims)*sizeof(uint);
-      nfaces=malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
+      nfaces=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       myIO::fread_ului(nfaces,sizeof(NDNET_UINT),((size_t)ndims+1),indexSize,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
 
       //j=(1+ndims)*sizeof(int);
-      haveVertexFromFace=malloc(sizeof(int)*((size_t)ndims+1));
+      haveVertexFromFace=(int*)malloc(sizeof(int)*((size_t)ndims+1));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       myIO::fread(haveVertexFromFace,sizeof(int)*((size_t)ndims+1),1,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
 
-      f_vertexIndex = calloc(sizeof(NDNET_UINT*),(1+ndims));
-      f_numVertexIndexCum = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+      f_vertexIndex = (NDNET_UINT**)calloc(sizeof(NDNET_UINT*),(1+ndims));
+      f_numVertexIndexCum = (NDNET_IDCUMT**)calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
 
       for (i=0;i<1+ndims;i++)
 	{    
@@ -295,13 +334,15 @@ namespace IO {
 		{
 	    
 		  //j=sizeof(uint)*((size_t)nfaces[i]+1);
-		  f_numVertexIndexCum[i]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
+		  f_numVertexIndexCum[i]=
+		    (NDNET_IDCUMT*)malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 		  myIO::fread_ului(f_numVertexIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),cumIndexSize,f,swap);
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 	    
 		  //j=sizeof(uint)*((size_t)f_numVertexIndexCum[i][nfaces[i]]);
-		  f_vertexIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)f_numVertexIndexCum[i][nfaces[i]]));
+		  f_vertexIndex[i]=
+		    (NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)f_numVertexIndexCum[i][nfaces[i]]));
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 		  myIO::fread_ului(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)f_numVertexIndexCum[i][nfaces[i]]),indexSize,f,swap);
 		  myIO::fread(&dummy,sizeof(int),1,f,swap); 
@@ -309,7 +350,7 @@ namespace IO {
 	      else
 		{
 		  //j=sizeof(uint)*((size_t)(i+1)*nfaces[i]);
-		  f_vertexIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)(i+1)*nfaces[i]));
+		  f_vertexIndex[i]=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)(i+1)*nfaces[i]));
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 		  myIO::fread_ului(f_vertexIndex[i],sizeof(NDNET_UINT),((size_t)(i+1)*nfaces[i]),indexSize,f,swap);
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -319,13 +360,13 @@ namespace IO {
 	}
   
       j=(1+ndims)*sizeof(int);
-      haveFaceFromVertex=malloc(sizeof(int)*((size_t)ndims+1));
+      haveFaceFromVertex=(int*)malloc(sizeof(int)*((size_t)ndims+1));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       myIO::fread(haveFaceFromVertex,sizeof(int)*((size_t)ndims+1),1,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
 
-      v_faceIndex = calloc(sizeof(NDNET_UINT*),(1+ndims));
-      v_numFaceIndexCum = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+      v_faceIndex = (NDNET_UINT**)calloc(sizeof(NDNET_UINT*),(1+ndims));
+      v_numFaceIndexCum = (NDNET_IDCUMT**)calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
       //printf("%ld == %d\n",sizeof(NDNET_IDCUMT),cumIndexSize);
       for (i=0;i<1+ndims;i++)
 	{     
@@ -334,30 +375,30 @@ namespace IO {
 	    {
 	      //j=sizeof(uint)*((size_t)nvertex+1);
 	
-	      v_numFaceIndexCum[i]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nvertex+1));
+	      v_numFaceIndexCum[i]=(NDNET_IDCUMT*)malloc(sizeof(NDNET_IDCUMT)*((size_t)nvertex+1));
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread_ului(v_numFaceIndexCum[i],sizeof(NDNET_IDCUMT),((size_t)nvertex+1),cumIndexSize,f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	  
 	      //j=sizeof(uint)*((size_t)v_numFaceIndexCum[i][nvertex]);
-	      v_faceIndex[i]=malloc(sizeof(NDNET_UINT)*((size_t)v_numFaceIndexCum[i][nvertex]));
+	      v_faceIndex[i]=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)v_numFaceIndexCum[i][nvertex]));
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread_ului(v_faceIndex[i],sizeof(NDNET_UINT),((size_t)v_numFaceIndexCum[i][nvertex]),indexSize,f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);	  
 	    }
 	}
   
-      haveFaceFromFace =calloc(sizeof(int *),(1+ndims));
-      f_faceIndex = calloc(sizeof(NDNET_UINT**),(1+ndims));
-      f_numFaceIndexCum = calloc(sizeof(NDNET_IDCUMT**),(1+ndims));
+      haveFaceFromFace =(int **)calloc(sizeof(int *),(1+ndims));
+      f_faceIndex = (NDNET_UINT***)calloc(sizeof(NDNET_UINT**),(1+ndims));
+      f_numFaceIndexCum = (NDNET_IDCUMT***)calloc(sizeof(NDNET_IDCUMT**),(1+ndims));
 
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       for (k=0;k<ndims+1;k++)
 	{
-	  f_faceIndex[k] = calloc(sizeof(NDNET_UINT*),(1+ndims));
-	  f_numFaceIndexCum[k] = calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
+	  f_faceIndex[k] = (NDNET_UINT**)calloc(sizeof(NDNET_UINT*),(1+ndims));
+	  f_numFaceIndexCum[k] = (NDNET_IDCUMT**)calloc(sizeof(NDNET_IDCUMT*),(1+ndims));
 
-	  haveFaceFromFace[k]=malloc(sizeof(int)*((size_t)ndims+1));
+	  haveFaceFromFace[k]=(int*)malloc(sizeof(int)*((size_t)ndims+1));
 	  myIO::fread(haveFaceFromFace[k],sizeof(int)*((size_t)ndims+1),1,f,swap);
 	}   
       myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -370,13 +411,13 @@ namespace IO {
 	      if (haveFaceFromFace[i][k])
 		{
 		  //j=sizeof(uint)*(1+(size_t)nfaces[i]);
-		  f_numFaceIndexCum[i][k]=malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
+		  f_numFaceIndexCum[i][k]=(NDNET_IDCUMT*)malloc(sizeof(NDNET_IDCUMT)*((size_t)nfaces[i]+1));
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 		  myIO::fread_ului(f_numFaceIndexCum[i][k],sizeof(NDNET_IDCUMT),((size_t)nfaces[i]+1),cumIndexSize,f,swap);
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      
 		  //j=sizeof(uint)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]);
-		  f_faceIndex[i][k]=malloc(sizeof(NDNET_UINT)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]));
+		  f_faceIndex[i][k]=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)f_numFaceIndexCum[i][k][nfaces[i]]));
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);
 		  myIO::fread_ului(f_faceIndex[i][k],sizeof(NDNET_UINT),((size_t)f_numFaceIndexCum[i][k][nfaces[i]]),indexSize,f,swap);
 		  myIO::fread(&dummy,sizeof(int),1,f,swap);	  
@@ -392,25 +433,25 @@ namespace IO {
       if (haveVFlags)
 	{
 	  j=sizeof(unsigned char)*nvertex;
-	  v_flag=malloc(sizeof(unsigned char)*(size_t)nvertex);
+	  v_flag=(unsigned char*)malloc(sizeof(unsigned char)*(size_t)nvertex);
 	  myIO::fread(&dummy,sizeof(int),1,f,swap);
 	  myIO::fread(v_flag,sizeof(unsigned char),(size_t)nvertex,f,swap);
 	  myIO::fread(&dummy,sizeof(int),1,f,swap);
 	}
 
-      haveFFlags=calloc(ndims+1,sizeof(int));
+      haveFFlags=(int*)calloc(ndims+1,sizeof(int));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
       myIO::fread(haveFFlags,sizeof(int),(ndims+1),f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
   
-      f_flag=calloc(ndims+1,sizeof(unsigned char *));
+      f_flag=(unsigned char **)calloc(ndims+1,sizeof(unsigned char *));
   
       for (i=0;i<1+ndims;i++)
 	if (haveFFlags[i])
 	  {	  
 	    j=sizeof(unsigned char)*nfaces[i];
 	 
-	    if (j) f_flag[i]=malloc(sizeof(unsigned char)*(size_t)nfaces[i]);
+	    if (j) f_flag[i]=(unsigned char*)malloc(sizeof(unsigned char)*(size_t)nfaces[i]);
 	    myIO::fread(&dummy,sizeof(int),1,f,swap);
 	    if (j) myIO::fread(f_flag[i],sizeof(unsigned char),(size_t)nfaces[i],f,swap);
 	    myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -422,7 +463,7 @@ namespace IO {
       myIO::fread(&dummy,sizeof(int),1,f,swap);
   
 
-      data=malloc(sizeof(NDnetwork_Data)*ndata);
+      data=(NDnetwork_Data*)malloc(sizeof(NDnetwork_Data)*ndata);
       for (i=0;i<ndata;i++)
 	{     
 	  //j=sizeof(int)+255*sizeof(char);
@@ -434,7 +475,7 @@ namespace IO {
 	  if (data[i].type==0)
 	    {
 	      //j=sizeof(double)*nvertex;
-	      data[i].data=malloc(sizeof(double)*(size_t)nvertex);
+	      data[i].data=(double*)malloc(sizeof(double)*(size_t)nvertex);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread(data[i].data,sizeof(double),(size_t)nvertex,f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -442,7 +483,7 @@ namespace IO {
 	  else
 	    {
 	      //j=sizeof(double)*nfaces[data[i].type];
-	      data[i].data=malloc(sizeof(double)*(size_t)nfaces[data[i].type]);
+	      data[i].data=(double*)malloc(sizeof(double)*(size_t)nfaces[data[i].type]);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread(data[i].data,sizeof(double),(size_t)nfaces[data[i].type],f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -453,7 +494,7 @@ namespace IO {
       myIO::fread(&nsupData,sizeof(int),1,f,swap);
       myIO::fread(&dummy,sizeof(int),1,f,swap);
   
-      supData=malloc(sizeof(NDnetwork_SupData)*nsupData);
+      supData=(NDnetwork_SupData*)malloc(sizeof(NDnetwork_SupData)*nsupData);
       for (i=0;i<nsupData;i++)
 	{     
 	  j=sizeof(int)+255*sizeof(char);
@@ -467,7 +508,7 @@ namespace IO {
 	  if (supData[i].type==0)
 	    {
 	      //j=(size_t)supData[i].datasize*nvertex;
-	      supData[i].data=malloc((size_t)supData[i].datasize*(size_t)nvertex);
+	      supData[i].data=(NDnetwork_SupData*)malloc((size_t)supData[i].datasize*(size_t)nvertex);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread(supData[i].data,(size_t)supData[i].datasize,(size_t)nvertex,f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -475,7 +516,7 @@ namespace IO {
 	  else
 	    {
 	      //j=(size_t)supData[i].datasize*nfaces[supData[i].type];
-	      supData[i].data=malloc((size_t)supData[i].datasize*(size_t)nfaces[supData[i].type]);
+	      supData[i].data=(NDnetwork_SupData*)malloc((size_t)supData[i].datasize*(size_t)nfaces[supData[i].type]);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
 	      myIO::fread(supData[i].data,(size_t)supData[i].datasize,(size_t)nfaces[supData[i].type],f,swap);
 	      myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -483,7 +524,8 @@ namespace IO {
 	}
 
       fclose(f);
-      if (verbose>0) printf (" done.\n");
+      fileLoaded=true;
+      if (verbose>0) glb::console->print<LOG_STD>(" done.\n");
       return 0;
     }
 
@@ -725,6 +767,7 @@ namespace IO {
       floatSize=0;
       nvertex=0;
       v_coord=NULL;
+      haveVertexFromFace=NULL;
       nfaces=NULL;
       f_numVertexIndexCum=NULL;
       f_vertexIndex=NULL;
@@ -802,33 +845,37 @@ namespace IO {
       free(delta);
       free(nfaces);
       free(v_coord);
-      for (i=0;i<=ndims;i++)
-	{
-	  if (haveVertexFromFace[i])
-	    {
-	      free(f_vertexIndex[i]);
-	      if (!isSimpComplex)
-		free(f_numVertexIndexCum[i]);
-	    }
-	}
+      if (haveVertexFromFace !=NULL)
+	for (i=0;i<=ndims;i++)
+	  {
+	    if (haveVertexFromFace[i])
+	      {
+		free(f_vertexIndex[i]);
+		if (!isSimpComplex)
+		  free(f_numVertexIndexCum[i]);
+	      }
+	  }
       free(haveVertexFromFace);
       free(f_vertexIndex);
       free(f_numVertexIndexCum);
-    
-      for (i=0;i<=ndims;i++)
-	{
-	  if (haveFaceFromVertex[i])
-	    {
-	      free(v_faceIndex[i]);
-	      free(v_numFaceIndexCum[i]);
-	    }
-	}
+
+      if (haveFaceFromVertex!=NULL)
+	for (i=0;i<=ndims;i++)
+	  {
+	    if (haveFaceFromVertex[i])
+	      {
+		free(v_faceIndex[i]);
+		free(v_numFaceIndexCum[i]);
+	      }
+	  }
       free(haveFaceFromVertex);
       free(v_faceIndex);
       free(v_numFaceIndexCum);
 
+      if (haveFaceFromFace!=NULL)
       for (i=0;i<=ndims;i++)
 	{
+	  if (haveFaceFromFace[i]!=NULL)
 	  for (j=0;j<=ndims;j++)
 	    {
 	      if (haveFaceFromFace[i][j])
@@ -846,26 +893,30 @@ namespace IO {
       free(f_numFaceIndexCum);
 
       if (haveVFlags) free(v_flag);
-      for (i=0;i<=ndims;i++)
-	if (haveFFlags[i]) free(f_flag[i]);
+      if (haveFFlags!=NULL)
+	for (i=0;i<=ndims;i++)
+	  if (haveFFlags[i]) free(f_flag[i]);
       free(f_flag);
       free(haveFFlags);
 
-      for (i=0;i<ndata;i++)
-	{
-	  free(data[i].data);
-	}
+      if (data!=NULL)
+	for (i=0;i<ndata;i++)
+	  {
+	    free(data[i].data);
+	  }
       free(data);
 
-      for (i=0;i<nsupData;i++)
-	{
-	  free(supData[i].data);
-	}
+      if (supData!=NULL)
+	for (i=0;i<nsupData;i++)
+	  {
+	    free(supData[i].data);
+	  }
       free(supData);
       setNULL();
+      fileLoaded=false;
     }
    
   };
 } // IO
-#include "../../internal/namespace.footer"
+#include "../internal/namespace.footer"
 #endif
