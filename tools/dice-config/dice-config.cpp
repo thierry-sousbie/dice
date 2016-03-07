@@ -8,7 +8,7 @@
 void usage(char *exe)
 {
   //printf("\n");
-  printf("Usage: %s [-cxxflags] [-libs] [-defines] [-includes] [-all] [-all_noflags]\n",exe);
+  printf("Usage: %s [-compiler] [-flags] [-[dist_]includes] [-libs] [-defines] [-[dist_]all] [-[dist_]all_noflags]\n",exe);
 }
 
 int main(int argc, char **argv)

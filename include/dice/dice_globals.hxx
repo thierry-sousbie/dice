@@ -62,7 +62,7 @@ namespace glb {
 
 /** \brief sets the default number of threads for the entire library
  */
-static void setGlobalNumThreads(int nThreads)
+void setGlobalNumThreads(int nThreads)
 {
   omp_set_num_threads(nThreads);
   glb::num_omp_threads=nThreads;
@@ -72,7 +72,9 @@ static void setGlobalNumThreads(int nThreads)
 
 struct GlobalObjects
 { 
-  static void init(int *argc, char ***argv,bool initializeMpi=true)
+  static void init(int *argc, char ***argv,
+		   bool useParamsParser=true,
+		   bool initializeMpi=true)
   {
     glb::num_omp_threads=1;
     glb::debug=0;  
@@ -86,7 +88,10 @@ struct GlobalObjects
 
     glb::console = new Console(3); // parameter is the default verbose level
     glb::memoryInspector = new MemoryInspector();
-    glb::pParser = new ParamsParser(*argc,*argv);  
+    if (useParamsParser)
+      glb::pParser = new ParamsParser(*argc,*argv);
+    else
+      glb::pParser = new ParamsParser();
     glb::dummyPParser = new ParamsParser;  
     glb::global_stop_signal=0;
 

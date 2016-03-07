@@ -214,7 +214,7 @@ public:
     
   }
   
-  ParamsParser(int argc, char **argv,std::string fname=std::string("params.ini"))
+  ParamsParser(int argc, char **argv, std::string fname=std::string("params.ini"))
   {
     init(argc,argv,fname);
   }
@@ -224,14 +224,14 @@ public:
 
   }
 
-  void init(int argc=0, char **argv=NULL,std::string fname=std::string("params.ini"))
+  void init(int argc=0, char **argv=NULL, std::string fname=std::string("params.ini"))
   {
     int i0=0;
 
     if (argc>i0)
       execFileName=std::string(argv[i0++]);
 
-    if (argc>i0)
+    if ((argc>i0)&&(fname!=std::string("")))
       {
 	if (argv[i0][0]!='-') 
 	  fname=std::string(argv[i0++]);

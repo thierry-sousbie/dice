@@ -9,9 +9,11 @@
 
 #include "./internal/namespace.header"
 
-void initialize(int *argc, char ***argv, bool initializeMpi=true)
+void initialize(int *argc, char ***argv,
+		bool useParamsParser=true,
+		bool initializeMpi=true)
 {
-  GlobalObjects::init(argc,argv,initializeMpi);
+  GlobalObjects::init(argc,argv,useParamsParser,initializeMpi);
 }
 
 void finalize()
