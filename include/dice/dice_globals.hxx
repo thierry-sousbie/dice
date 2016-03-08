@@ -56,7 +56,7 @@ namespace glb {
 // gcc complains about deprecated declarations in eigen ...
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-// Because eigen needs to be initialized when multithreading is enabled !
+// eigen needs to be initialized when multithreading is enabled !
 #include <Eigen/Core>
 #pragma GCC diagnostic pop
 #endif
