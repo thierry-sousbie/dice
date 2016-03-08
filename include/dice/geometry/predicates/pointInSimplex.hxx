@@ -72,7 +72,9 @@ namespace predicate
       for (int n=0;n<S::NVERT;++n)
 	for (int d=0;d<NDIM;++d)
 	  vCoord[n][d]=simplex->getVertex(n)->getCoord(d);
-    
+
+      return test(vCoord,pCoord,geometry,coordsAreConsistent);
+      /*
       if ((coordsAreConsistent>0) ||	
 	  ((coordsAreConsistent<0)&&
 	   geometry->template coordsAreConsistent<Coord,S::NVERT,NDIM>(vCoord,pCoord))
@@ -80,9 +82,39 @@ namespace predicate
 	return Base::test(vCoord,pCoord);
       else
 	return Base::test(vCoord,pCoord,geometry);
+      */
+    }
+  
+
+    /**
+     * \brief Test if a point is inside or outside a simplex. Note that the point cannot be 
+     *  on a boundary, in which case a side is arbitrarily (but consistently) chosen.
+     * \param vCoord (NDIM+1) pointers the (NDIM) coordinates of each vertex of the simplex
+     * \param pCoord A pointer to the ND coordinates of the point to test
+     * \param geometry A pointer to the geometry of the mesh
+     * \param coordsAreConsistent For periodic boundaries, set to 1 if coordinates are
+     * consistent (i.e. on the same side of the periodic box), 0 if they are not and -1 if 
+     * you do not know. This is useless for non periodic boundaries.
+     * \tparam T The type of the coordinates
+     * \tparam G The class describing geometric properties of the bounding box. See e.g.
+     *  GeometricPropertiesT
+     * \return true if the point with coords \a pCoord is INSIDE the simplex, false otherwise
+     */
+    template <class T, class G>
+    static int test(const T (&vCoord)[NDIM+1][NDIM], const T pCoord[NDIM], 
+		    const G* geometry, int coordsAreConsistent=-1)
+    {
+      if ((coordsAreConsistent>0) ||	
+	  ((coordsAreConsistent<0)&&
+	   geometry->template coordsAreConsistent<T,NDIM+1,NDIM>(vCoord,pCoord))
+	  )
+	return Base::test(vCoord,pCoord);
+      else
+	return Base::test(vCoord,pCoord,geometry);
     }
   
  
+    
     /**
      * \brief Test if a point is inside or outside a simplex. Note that the point cannot be 
      *  on a boundary, in which case a side is arbitrarily (but consistently) chosen.
