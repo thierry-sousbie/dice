@@ -9,9 +9,11 @@
 #include "../tools/wrappers/boostMultiprecisionForEigen3.hxx"
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Eigen/SVD>
-//#include <unsupported/Eigen/SVD>
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 
 #include "../tools/helpers/helpers.hxx"
 
