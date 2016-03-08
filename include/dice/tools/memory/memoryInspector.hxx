@@ -16,15 +16,15 @@ class MemoryInspector
 {
 public:
  
-  MemoryInspector()
+  MemoryInspector(bool warn=false)
   {
     pid=getpid();
     sprintf(path, "/proc/%d/status", pid);
     FILE *f=fopen(path,"r");
     if (f==NULL)
       {
-	PRINT_SRC_INFO(LOG_WARNING);
-	glb::console->print<LOG_WARNING>("Could not open '%s' for memory inspection.\n  MemoryInspector will be disabled.\n",path);
+	if (warn) {PRINT_SRC_INFO(LOG_WARNING);}
+	if (warn) glb::console->print<LOG_WARNING>("Could not open '%s' for memory inspection.\n  MemoryInspector will be disabled.\n",path);
 	pid=0;
       }
     else fclose(f);
