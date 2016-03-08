@@ -12,7 +12,7 @@
 #include "../mesh/internal/facetImplementation.hxx"
 
 #include "../geometry/predicates/pointInSimplex.hxx"
-#include "../geometry/predicates/segmentFacetIntersection.hxx"
+#include "../geometry/predicates/intersectionSegmentFacet.hxx"
 
 /**
  * @file 
@@ -288,7 +288,7 @@ public:
 		       const G * geometry, TZ &intersectionCoord, 
 		       int coordsAreConsistent=-1) const
   {
-    return predicate::SegmentFacetIntersectionT<NDIM,filter>::template test<MyType,G,TZ,TC>
+    return predicate::IntersectionSegmentFacetT<NDIM,filter>::template test<MyType,G,TZ,TC>
       (*this,coords,dim,otherCoord,geometry,intersectionCoord,coordsAreConsistent); 
   }
 
@@ -297,7 +297,7 @@ public:
 		       const G * geometry, 
 		       int coordsAreConsistent=-1) const
   {
-    return predicate::SegmentFacetIntersectionT<NDIM,filter>::template test<MyType,G>
+    return predicate::IntersectionSegmentFacetT<NDIM,filter>::template test<MyType,G>
       (*this,coords,dim,otherCoord,geometry,coordsAreConsistent); 
   }
   
