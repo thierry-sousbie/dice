@@ -230,7 +230,7 @@ namespace IO {
 
     }
 
-    int read(const char *filename, int verbose=0)
+    int read(const char *filename, int verbose=1)
     {
       long i,j,k;
       int dummy;
