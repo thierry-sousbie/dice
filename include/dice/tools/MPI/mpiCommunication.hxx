@@ -16,8 +16,8 @@
 #include "../../dice_globals.hxx"
 
 #include "../../tools/OMP/openMP_interface.hxx"
-#include "../../tools/MPI/myMpi.hxx"
-
+#include "./myMpi.hxx"
+#include "./mpiDataType.hxx"
 
 #include "../../internal/namespace.header"
 
