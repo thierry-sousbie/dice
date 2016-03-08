@@ -5,6 +5,8 @@
 
 #include "../orientation.hxx"
 
+//#include "pointInBoxBase.hxx"
+
 #include "../../geometricProperties.hxx"
 
 #include "../../../tools/wrappers/boostMultiprecisionFloat128.hxx"
@@ -27,24 +29,25 @@ namespace internal {
   {
   public:
     static const int NDIM=2;
+    //typedef PointInBoxBaseT<1,filterType> PointInBox1D;
     typedef predicate::OrientationT<2,filterType> Orientation;
 
     /*
-    template <class T, class T2>
-    static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
-				       const int dim, T2 &zCoord)
-    {
+      template <class T, class T2>
+      static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
+      const int dim, T2 &zCoord)
+      {
       printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
       exit(-1);
-    }
+      }
 
-    template <class T, class T2, class G>
-    static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
-				       const int dim, T2 &zCoord, const G* geometry)
-    {
+      template <class T, class T2, class G>
+      static int getRayFacetIntersection(T vCoord[][NDIM], const T pCoord[NDIM], 
+      const int dim, T2 &zCoord, const G* geometry)
+      {
       printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
       exit(-1);
-    }
+      }
     */
     
     template <class T, class T2, class CT=T2, bool INTERP=true>
@@ -58,7 +61,7 @@ namespace internal {
       vCoord1D[0][0]=vCoord[0][1-dim];
       vCoord1D[1][0]=vCoord[1][1-dim];
      
-      if (test1D<T>(vCoord1D,pCoord1D))
+      if (test1D(vCoord1D,pCoord1D))
 	{
 	  double testPointCoord[NDIM];
 	  std::copy(pCoord,pCoord+NDIM,testPointCoord);
@@ -75,9 +78,9 @@ namespace internal {
 		    intersectionCoord=(vCoord[0][dim]+vCoord[1][dim])/2;
 		  else
 		    intersectionCoord = vCoord[0][dim] +
-			(vCoord[1][dim]-vCoord[0][dim])*
-			(pCoord[1-dim]-vCoord[0][1-dim])/
-			(vCoord[1][1-dim]-vCoord[0][1-dim]);
+		      (vCoord[1][dim]-vCoord[0][dim])*
+		      (pCoord[1-dim]-vCoord[0][1-dim])/
+		      (vCoord[1][1-dim]-vCoord[0][1-dim]);
 		}
 	      return 1;
 	    }
@@ -101,18 +104,18 @@ namespace internal {
       vCoord1D[0][0]=vCoord[0][1-dim];
       vCoord1D[1][0]=vCoord[1][1-dim];
       
-      if (test1D<T>(vCoord1D,pCoord1D,dim,geometry))
-	  {
-	    double testPointCoord[NDIM];
-	    std::copy(pCoord,pCoord+NDIM,testPointCoord);
-	    int res1 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
+      if (test1D(vCoord1D,pCoord1D,dim,geometry))
+	{
+	  double testPointCoord[NDIM];
+	  std::copy(pCoord,pCoord+NDIM,testPointCoord);
+	  int res1 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
       
-	    testPointCoord[dim]=otherCoord;
-	    int res2 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
+	  testPointCoord[dim]=otherCoord;
+	  int res2 = Orientation::test(vCoord[0],vCoord[1],testPointCoord,geometry);
 
-	    if (res1!=res2)
-	      {
-		if (INTERP)
+	  if (res1!=res2)
+	    {
+	      if (INTERP)
 		{
 		  if (vCoord1D[1][0]==vCoord1D[0][0])
 		    intersectionCoord=(vCoord[0][dim]+vCoord[1][dim])/2;
@@ -140,14 +143,14 @@ namespace internal {
 			}
 		    }
 		}
-		return 1;
-	      }
-	  }
-       return 0;
-       /*
-	 printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
-	 exit(-1);
-       */
+	      return 1;
+	    }
+	}
+      return 0;
+      /*
+	printf("SORRY: getRayIntersection is not implemented in 2D ! (but that's easy ;) )\n");
+	exit(-1);
+      */
     }
    
 
@@ -173,15 +176,15 @@ namespace internal {
       res+=Orientation::test(vCoord[1],vCoord[2],pCoord,geometry);
       res+=Orientation::test(vCoord[2],vCoord[0],pCoord,geometry);
       /*
-      if ((fabs(pCoord[0]-(-6.2890625E-1))<1.E-5)&&
-	  (fabs(pCoord[1]-(1))<1.E-5))
+	if ((fabs(pCoord[0]-(-6.2890625E-1))<1.E-5)&&
+	(fabs(pCoord[1]-(1))<1.E-5))
 	{
-	  printf("TESTING: (%20.20e %20.20e) (%20.20e %20.20e) (%20.20e %20.20e) -> (%d,%d,%d)=>%d\n",
-		 vCoord[0][0],vCoord[0][1],vCoord[1][0],vCoord[1][1],vCoord[2][0],vCoord[2][1],
-		 Orientation::test(vCoord[0],vCoord[1],pCoord,geometry),
-		 Orientation::test(vCoord[1],vCoord[2],pCoord,geometry),
-		 Orientation::test(vCoord[2],vCoord[0],pCoord,geometry),
-		 ((res==3)||(res==0)));
+	printf("TESTING: (%20.20e %20.20e) (%20.20e %20.20e) (%20.20e %20.20e) -> (%d,%d,%d)=>%d\n",
+	vCoord[0][0],vCoord[0][1],vCoord[1][0],vCoord[1][1],vCoord[2][0],vCoord[2][1],
+	Orientation::test(vCoord[0],vCoord[1],pCoord,geometry),
+	Orientation::test(vCoord[1],vCoord[2],pCoord,geometry),
+	Orientation::test(vCoord[2],vCoord[0],pCoord,geometry),
+	((res==3)||(res==0)));
 	  
 	}
       */
@@ -189,7 +192,7 @@ namespace internal {
     }
 
   private:
-
+    
     template <class T>
     static int test1D(const T vCoord[][1], const T pCoord[1])
     {
@@ -218,21 +221,23 @@ namespace internal {
 	  T pq2[2][1]={{vCoord[0][0]},{vCoord[1][0]}};
 	  T r2[1]={pCoord[0]};
 	  
-	  if (geometry->template checkCoordsConsistency<T,2,1>(pq2,r2))
+	  geometry->template checkCoordsConsistency<T,2,1>(pq2,r2);
+	    
+	  if (filterType==predicate::filterType::Raw) return test1D(pq2,r2);
+	  
+	  T eps=1.E-15*geometry->getBBoxSize();
+	  if ((fabs(pq2[0][0]-r2[0])<eps)||
+	      (fabs(pq2[1][0]-r2[0])<eps))
 	    {
-	      T eps=1.E-15*geometry->getBBoxSize();
-	      if ((fabs(pq2[0][1]-r2[0])<eps)||
-		  (fabs(pq2[1][1]-r2[0])<eps))
-		{
-		  // We need exact computations !
-		  typedef boost::multiprecision::mpf_float mpfloat;
-		  mpfloat mp_pq[2][1]={{vCoord[0][0]},{vCoord[1][0]}};
-		  mpfloat mp_r[1]={pCoord[0]};
-		  geometry->template checkCoordsConsistency<mpfloat,2,1>(mp_pq,mp_r);
-		  return test1D(mp_pq,mp_r);
-		}
+	      // We need exact computations !
+	      typedef boost::multiprecision::mpf_float mpfloat;
+	      mpfloat mp_pq[2][1]={{vCoord[0][0]},{vCoord[1][0]}};
+	      mpfloat mp_r[1]={pCoord[0]};
+	      geometry->template checkCoordsConsistency<mpfloat,2,1>(mp_pq,mp_r);
+	      return test1D(mp_pq,mp_r);
 	    }
-	  else return test1D(pq2,r2);
+	
+	  return test1D(pq2,r2);
 	}
       else return test1D(vCoord,pCoord);
     }
@@ -296,71 +301,71 @@ namespace internal {
       return c;
     }
 
-/*
-    static int pnpolyC(int nvert, double *vertx, double *verty, double testx, double testy)
-    {
+    /*
+      static int pnpolyC(int nvert, double *vertx, double *verty, double testx, double testy)
+      {
       int i, j, c = 0;
       for (i = 0, j = nvert-1; i < nvert; j = i++) {
-	if ((verty[i]>testy) != (verty[j]>testy))
-	  {
-	    printf("Test1[%d,%d]= (%d != %d) == 1\n",i,j,(verty[i]>testy),(verty[j]>testy));
-	    printf("(testy==verty[%d]) == (%.18lg==%.18lg) = %d.\n",
-		   j,testy,verty[j],(testy==verty[j]));
-	    if (testy!=verty[j])
-	      printf("Testing %.18lg<(%.18lg-%.18lg)/(%.18lg-%.18lg)*(%.18lg-%.18lg)+%.18lg\n --> %.18lg<%.18lg/%.18lg*%.18lg\n",
-		     testx,vertx[j],vertx[i],verty[j],verty[i],testy,verty[i],vertx[i],
-		     testx-vertx[i],vertx[j]-vertx[i],verty[j]-verty[i],testy-verty[i]);
+      if ((verty[i]>testy) != (verty[j]>testy))
+      {
+      printf("Test1[%d,%d]= (%d != %d) == 1\n",i,j,(verty[i]>testy),(verty[j]>testy));
+      printf("(testy==verty[%d]) == (%.18lg==%.18lg) = %d.\n",
+      j,testy,verty[j],(testy==verty[j]));
+      if (testy!=verty[j])
+      printf("Testing %.18lg<(%.18lg-%.18lg)/(%.18lg-%.18lg)*(%.18lg-%.18lg)+%.18lg\n --> %.18lg<%.18lg/%.18lg*%.18lg\n",
+      testx,vertx[j],vertx[i],verty[j],verty[i],testy,verty[i],vertx[i],
+      testx-vertx[i],vertx[j]-vertx[i],verty[j]-verty[i],testy-verty[i]);
 	    
-	    if (testy==verty[j])
-	      {
-		printf("(testx<vertx[%d]) == (%.18lg<%.18lg) = %d.\n",
-		       j,testx,vertx[j],(testx<vertx[j]));
-		if (testx<vertx[j])
-		  {
-		    printf("-----> c=%d => %d\n",c,!c);
-		    c=!c;
-		  }
-		else printf("-----> c=%d\n",c);
-	      }
-	    else if (testx < (vertx[j]-vertx[i])/ (verty[j]-verty[i]) * (testy-verty[i])  + vertx[i])
-	      {
-		printf("-----> c=%d => %d\n",c,!c);
-		c=!c;
-	      }
-	    else printf("-----> c=%d\n",c);
-	  }	
-	else printf("Test1[%d,%d]= (%d != %d) == 0\n",i,j,(verty[i]>testy),(verty[j]>testy));
+      if (testy==verty[j])
+      {
+      printf("(testx<vertx[%d]) == (%.18lg<%.18lg) = %d.\n",
+      j,testx,vertx[j],(testx<vertx[j]));
+      if (testx<vertx[j])
+      {
+      printf("-----> c=%d => %d\n",c,!c);
+      c=!c;
+      }
+      else printf("-----> c=%d\n",c);
+      }
+      else if (testx < (vertx[j]-vertx[i])/ (verty[j]-verty[i]) * (testy-verty[i])  + vertx[i])
+      {
+      printf("-----> c=%d => %d\n",c,!c);
+      c=!c;
+      }
+      else printf("-----> c=%d\n",c);
+      }	
+      else printf("Test1[%d,%d]= (%d != %d) == 0\n",i,j,(verty[i]>testy),(verty[j]>testy));
 	  
       }
       return c;
-    }
+      }
 
-    static int pnpoly(int nvert, double *vertx, double *verty, double testx, double testy)
-    {
+      static int pnpoly(int nvert, double *vertx, double *verty, double testx, double testy)
+      {
       int i, j, c = 0;
       for (i = 0, j = nvert-1; i < nvert; j = i++) {
-	if ( ((verty[i]>testy) != (verty[j]>testy)) )
-	  {
-	    printf("Test1[%d,%d]= (%d != %d) == 1\n",i,j,(verty[i]>testy),(verty[j]>testy));
-	    printf("Testing %.18lg<(%.18lg-%.18lg)*(%.18lg-%.18lg)/(%.18lg-%.18lg)+%.18lg\n --> %.18lg<(%.18lg*%.18lg)/%.18lg\n",
-		   testx,vertx[j],vertx[i],testy,verty[i],verty[j],verty[i],vertx[i],
-		   testx-vertx[i],vertx[j]-vertx[i],testy-verty[i],verty[j]-verty[i]);
-	    if ((testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]))
-	      printf("-----> c=%d => %d\n",c,!c);
-	    else
-	      printf("-----> c=%d\n",c);
-	  }
-	else
-	  printf("Test1[%d,%d]= (%d != %d) == 0\n",i,j,(verty[i]>testy),(verty[j]>testy));
+      if ( ((verty[i]>testy) != (verty[j]>testy)) )
+      {
+      printf("Test1[%d,%d]= (%d != %d) == 1\n",i,j,(verty[i]>testy),(verty[j]>testy));
+      printf("Testing %.18lg<(%.18lg-%.18lg)*(%.18lg-%.18lg)/(%.18lg-%.18lg)+%.18lg\n --> %.18lg<(%.18lg*%.18lg)/%.18lg\n",
+      testx,vertx[j],vertx[i],testy,verty[i],verty[j],verty[i],vertx[i],
+      testx-vertx[i],vertx[j]-vertx[i],testy-verty[i],verty[j]-verty[i]);
+      if ((testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]))
+      printf("-----> c=%d => %d\n",c,!c);
+      else
+      printf("-----> c=%d\n",c);
+      }
+      else
+      printf("Test1[%d,%d]= (%d != %d) == 0\n",i,j,(verty[i]>testy),(verty[j]>testy));
 
 
-	if ( ((verty[i]>testy) != (verty[j]>testy)) &&
-	     (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
-	  c = !c;
+      if ( ((verty[i]>testy) != (verty[j]>testy)) &&
+      (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
+      c = !c;
       }
       return c;
-    }
-*/
+      }
+    */
 
   };
 
