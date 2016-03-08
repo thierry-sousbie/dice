@@ -50,7 +50,7 @@ namespace IO {
 
     VtkPRectilinearGridWriterT(Grid *g, MpiCommunication *com, 
 			       const char *globalFileName,
-			       const char *fileNameFormat):
+			       const char *fileNameFormat=NULL):
       grid(g),
       mpiCom(com),      
       globalFName(globalFileName),
@@ -59,8 +59,11 @@ namespace IO {
       
       if (mpiCom->size()>1)
 	{
-	  char tmp[255];	 
-	  sprintf(tmp,fileNameFormat,mpiCom->rank());
+	  char tmp[255];
+	  if (fileNameFormat!=NULL)
+	    sprintf(tmp,fileNameFormat,mpiCom->rank());
+	  else
+	    sprintf(tmp,"%s_%.5d",globalFileName,mpiCom->rank());
 	  localFName = tmp;
 	}
       else localFName = globalFName;
