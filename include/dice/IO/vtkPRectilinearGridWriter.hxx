@@ -53,17 +53,17 @@ namespace IO {
 			       const char *fileNameFormat=NULL):
       grid(g),
       mpiCom(com),      
-      globalFName(globalFileName),
-      fNameFormat(fileNameFormat)
+      globalFName(globalFileName)
     {     
+      if (fileNameFormat == NULL)
+	fNameFormat = std::string(globalFileName) + std::string("_%.5d");
+      else
+	fNameFormat = std::string(fileNameFormat);
       
       if (mpiCom->size()>1)
 	{
 	  char tmp[255];
-	  if (fileNameFormat!=NULL)
-	    sprintf(tmp,fileNameFormat,mpiCom->rank());
-	  else
-	    sprintf(tmp,"%s_%.5d",globalFileName,mpiCom->rank());
+	  sprintf(tmp,fNameFormat.c_str(),mpiCom->rank());
 	  localFName = tmp;
 	}
       else localFName = globalFName;
