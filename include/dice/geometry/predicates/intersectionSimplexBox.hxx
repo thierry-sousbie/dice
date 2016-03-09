@@ -59,14 +59,12 @@ namespace predicate
     static int test(const T (&vCoord)[NDIM+1][NDIM], const T box[2][NDIM], 
 		    const G* geometry, int coordsAreConsistent=-1)
     {
-      if (coordsAreConsistent)
+      if (coordsAreConsistent>0)
 	return Base::test(vCoord,box);
-
-      int consistent=0;
-      consistent = geometry->template coordsAreConsistent<T,NDIM+1,NDIM>(vCoord,box[0]);
-      consistent += geometry->template coordsAreConsistent<T,NDIM+1,NDIM>(vCoord,box[1]);
       
-      if (consistent<2) return Base::test(vCoord,box,geometry);
+      if ( (!geometry->template coordsAreConsistent<T,NDIM,NDIM>(vCoord,vCoord[NDIM])) ||
+	   (!geometry->template coordsAreConsistent<T,1,NDIM>(box,box[1])) )
+	return Base::test(vCoord,box,geometry);
       
       return Base::test(vCoord,box);
     }

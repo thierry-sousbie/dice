@@ -155,7 +155,7 @@ namespace internal {
    
 
     template <class T>
-    static int test(const T vCoord[][NDIM], const T* const pCoord)
+    static int test(const T vCoord[][NDIM], const T*  pCoord)
     {
       //return testY(vCoord,pCoord);
       
@@ -167,7 +167,7 @@ namespace internal {
     }
 
     template <class T, class G>
-    static int test(const T vCoord[][NDIM], const T* const pCoord, const G* geometry)
+    static int test(const T vCoord[][NDIM], const T*  pCoord, const G* geometry)
     {
       //return testY(vCoord,pCoord);
       

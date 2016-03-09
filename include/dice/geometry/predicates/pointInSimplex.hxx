@@ -101,7 +101,7 @@ namespace predicate
      * \return true if the point with coords \a pCoord is INSIDE the simplex, false otherwise
      */
     template <class T, class G>
-    static int test(const T (&vCoord)[NDIM+1][NDIM], const T pCoord[NDIM], 
+    static int test(const T (vCoord)[NDIM+1][NDIM], const T pCoord[NDIM], 
 		    const G* geometry, int coordsAreConsistent=-1)
     {
       if ((coordsAreConsistent>0) ||	
@@ -124,7 +124,7 @@ namespace predicate
      * \return True if the point with coords \a pCoord is INSIDE the simplex, false otherwise
      */
     template <class T>
-    static int test(const T (&vCoord)[NDIM+1][NDIM], const T pCoord[NDIM])
+    static int test(const T (vCoord)[NDIM+1][NDIM], const T pCoord[NDIM])
     {
       return Base::test(vCoord,pCoord);
     }
@@ -138,7 +138,7 @@ namespace predicate
      * \return True if the point with coords \a pCoord is INSIDE the simplex, false otherwise
      */
     template <class T>
-    static int test(const T (&vCoord)[NDIM+2][NDIM])
+    static int test(const T (vCoord)[NDIM+2][NDIM])
     {
       return Base::test(vCoord,&vCoord[NDIM+1][0]);
     }

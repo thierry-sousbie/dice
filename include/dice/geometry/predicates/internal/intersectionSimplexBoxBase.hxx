@@ -33,7 +33,7 @@ namespace internal {
   public:
     
     template <class T>
-    static int test(const T vCoord[][ND], const T box[][ND])
+    static int test(const T vCoord[ND+1][ND], const T box[2][ND])
     {
       // check simplex vertices in box
       for (int i=0;i<ND+1;++i)
@@ -52,10 +52,10 @@ namespace internal {
 	    }
 		
 	  point[j][0]=box[1][0];
-	  if (PointInSimplex::test(vCoord,point[0])) return 1;
+	  if (PointInSimplex::test(vCoord,point[j])) return 1;
 	  
 	  point[j][0]=box[0][0];
-	  if (PointInSimplex::test(vCoord,point)) return 1;
+	  if (PointInSimplex::test(vCoord,point[j])) return 1;
 	}
 
       // Get all the facets
@@ -93,12 +93,13 @@ namespace internal {
     }
 
     template <class T, class G>
-    static int test(const T vCoord[][ND], const T box[][ND], const G* geometry)  
+    static int test(const T vCoord[ND+1][ND], const T box[2][ND], const G* geometry)  
     {
-        // check simplex vertices in box
+      
+      // check simplex vertices in box
       for (int i=0;i<ND+1;++i)
 	if (PointInBox::test(box,vCoord[i],geometry)) return 1;
-
+      
       // check box vertices in simplex, we store points on a signle facet of the cube
       T point[VERT_PER_FACE][ND];
       for (int j=0;j<VERT_PER_FACE;++j)
@@ -112,12 +113,13 @@ namespace internal {
 	    }
 		
 	  point[j][0]=box[1][0];
-	  if (PointInSimplex::test(vCoord,point[0],geometry)) return 1;
+	  if (PointInSimplex::test(vCoord,point[j],geometry)) return 1;
 	  
 	  point[j][0]=box[0][0];
-	  if (PointInSimplex::test(vCoord,point,geometry)) return 1;
+	  if (PointInSimplex::test(vCoord,point[j],geometry)) return 1;
 	}
-
+      
+      
       // Get all the facets
       T fCoord[ND+1][ND][ND];
       for (int k=0;k<ND+1;++k)
