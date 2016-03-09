@@ -312,7 +312,7 @@ namespace IO {
       //printf("=->%ld\n",(unsigned long)v_coord);
       //myIO::fread(v_coord,sizeof(float)*(size_t)ndims*(size_t)nvertex,1,f,swap);   
       myIO::fread(&dummy,sizeof(int),1,f,swap);
-      
+     
       //j=(1+ndims)*sizeof(uint);
       nfaces=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
       myIO::fread(&dummy,sizeof(int),1,f,swap);
@@ -528,6 +528,11 @@ namespace IO {
 
       fclose(f);
       fileLoaded=true;
+
+      floatSize=sizeof(NDNET_FLOAT);
+      indexSize=sizeof(NDNET_UINT);
+      cumIndexSize=sizeof(NDNET_IDCUMT);
+ 
       if (verbose>0) glb::console->print<LOG_STD>(" done.\n");
       return 0;
     }
@@ -541,6 +546,10 @@ namespace IO {
   
       if (verbose>1) printf ("Saving %dD network to file %s ...",ndims,filename);fflush(0);
 
+      floatSize=sizeof(NDNET_FLOAT);
+      indexSize=sizeof(NDNET_UINT);
+      cumIndexSize=sizeof(NDNET_IDCUMT);
+      
       memset(tag,0,NDNETWORK_DATA_STR_SIZE*sizeof(char));
       strcpy(tag,NDNETWORK_TAG);
       i=NDNETWORK_DATA_STR_SIZE;
@@ -564,13 +573,14 @@ namespace IO {
       fwrite(delta,sizeof(double),ndims,f);
       fwrite(&indexSize,sizeof(int),1,f);
       fwrite(&cumIndexSize,sizeof(int),1,f);
-      fwrite(dummy,sizeof(char),160-8,f);
+      fwrite(&floatSize,sizeof(int),1,f);      
+      fwrite(dummy,sizeof(char),160-3*sizeof(int),f);
       fwrite(&nvertex,sizeof(NDNET_UINT),1,f);
       fwrite(&j,sizeof(int),1,f);
   
       j=ndims*nvertex;
       fwrite(&j,sizeof(int),1,f);
-      fwrite(v_coord,sizeof(float),(size_t)ndims*(size_t)nvertex,f);
+      fwrite(v_coord,sizeof(NDNET_FLOAT),(size_t)ndims*(size_t)nvertex,f);
       fwrite(&j,sizeof(int),1,f);
   
       j=(1+ndims)*sizeof(NDNET_UINT);
@@ -784,6 +794,10 @@ namespace IO {
       ndata=0;data=NULL;
       haveVFlags=0;haveFFlags=NULL;
       v_flag=NULL;f_flag=NULL;
+
+      floatSize=sizeof(NDNET_FLOAT);
+      indexSize=sizeof(NDNET_UINT);
+      cumIndexSize=sizeof(NDNET_IDCUMT);
     }
     
     template <class T>
