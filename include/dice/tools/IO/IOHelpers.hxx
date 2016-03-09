@@ -179,7 +179,7 @@ namespace myIO {
 	unsigned long int *uo = (unsigned long int *)(data);
 	unsigned int *ui = (unsigned int *)(data);
       
-	for (i=nb;i>=0;i--)
+	for (i=nb-1;i>=0;i--)
 	  uo[i]=(unsigned long int) ui[i];
       }
     else
@@ -222,7 +222,7 @@ namespace myIO {
 	double *uo = (double *)(data);
 	float *ui = (float *)(data);
       
-	for (i=nb;i>=0;i--)
+	for (i=nb-1;i>=0;i--)
 	  uo[i]=(double) ui[i];
       }
     else
