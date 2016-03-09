@@ -89,7 +89,7 @@ int fread_sw_ului(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int 
       unsigned long int *uo = (unsigned long int *)(data);
       unsigned int *ui = (unsigned int *)(data);
       
-      for (i=nb;i>=0;i--)
+      for (i=nb-1;i>=0;i--)
 	uo[i]=(unsigned long int) ui[i];
     }
   else
@@ -132,7 +132,7 @@ void* fread_sw_fd(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int 
       double *uo = (double *)(data);
       float *ui = (float *)(data);
       
-      for (i=nb;i>=0;i--)
+      for (i=nb-1;i>=0;i--)
 	uo[i]=(double) ui[i];
     }
   else
