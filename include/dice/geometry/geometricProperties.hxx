@@ -22,7 +22,7 @@
  * \class GeometricPropertiesT
  * \brief A class for computing generic geometric properties under different 
  * boundary conditions.
- *
+ * \tparam CT  Floaing point type used for coordinates
  * \tparam ND  Number of spatial dimensions
  * \tparam NDW Total number of dimensions in the embedding space
  * \tparam BD  Boundary conditions along the first ND dimensions (of type 
