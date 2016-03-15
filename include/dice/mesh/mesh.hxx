@@ -2,7 +2,6 @@
 #define __MESH_HXX__
 
 #include <set>
-#include <type_traits>
 
 #include "../dice_globals.hxx"
 
