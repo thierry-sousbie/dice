@@ -51,8 +51,8 @@ namespace internal {
     long delta[NDIM-1];
     long nFields;
     long i; 
-    value_type *data;
     container_type *g;
+    value_type *data;
     int w[NDIM];
     int min[NDIM];
     int max[NDIM];
@@ -144,8 +144,9 @@ namespace internal {
 		     bool end=false):
       g(g_),
       data(g_->getDataPtr())
-    {    
-      initFromMargin(region,end,g->getParams().lowMargin,g->getParams().highMargin);     
+    {
+      initFromMargin(g,region,end,g->getParams().lowMargin,g->getParams().highMargin);     
+      //initFromMargin(region,end,g->getParams().lowMargin,g->getParams().highMargin);     
     }
 
   
