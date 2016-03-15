@@ -230,6 +230,90 @@ namespace IO {
 
     }
 
+    
+    int readHeader(const char *filename, int verbose=1)
+    {
+      int dummy;
+      char tag[NDNETWORK_DATA_STR_SIZE];
+      FILE *f;
+      int swap=0;
+          
+      //if (IsNDnetwork(filename) == 2) return Load_NDnetwork_ASCII(filename);
+      if (IsNDnetwork(filename) != 1)
+	{
+	  glb::console->printFlush<LOG_WARNING>
+	    ("File %s is not a valid NDnetwork.\n",filename);
+	  return -1;
+	}
+
+      freeData();
+      //net = calloc(1,sizeof(NDnetwork));
+      memset(tag,0,NDNETWORK_DATA_STR_SIZE*sizeof(char));
+  
+      f=fopen(filename,"r");
+  
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      if (dummy!=NDNETWORK_DATA_STR_SIZE) swap = 1-swap;
+      myIO::fread(tag,sizeof(char),NDNETWORK_DATA_STR_SIZE,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+  
+      if (strcmp(tag,NDNETWORK_TAG))
+	{
+	  fclose(f);
+	  fprintf (stderr,"File %s has an unknown format.\n",filename);
+	  return -2;
+	}
+       
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(&ndims,sizeof(int),1,f,swap);
+      myIO::fread(&ndims_net,sizeof(int),1,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      if (verbose>0)
+	 glb::console->printFlush<LOG_STD>
+	   ("Loading %dD network from file \"%s\" ...",ndims,filename);
+
+      x0=(double*)malloc(ndims*sizeof(double));
+      delta=(double*)malloc(ndims*sizeof(double));
+
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread(comment,sizeof(char),80,f,swap);
+      myIO::fread(&periodicity,sizeof(int),1,f,swap);
+      myIO::fread(&isSimpComplex,sizeof(int),1,f,swap);
+      myIO::fread(x0,sizeof(double),ndims,f,swap);
+      myIO::fread(delta,sizeof(double),ndims,f,swap);
+      myIO::fread(&indexSize,sizeof(int),1,f,swap);
+      
+      if (indexSize != 8) indexSize=4;
+      myIO::fread(&cumIndexSize,sizeof(int),1,f,swap);
+      if (cumIndexSize != 8) cumIndexSize=4;
+      myIO::fread(&floatSize,sizeof(int),1,f,swap);
+      if (floatSize != 8) floatSize=4;
+      char trash[256];
+      myIO::fread(trash,sizeof(char),160-3*sizeof(int),f,swap);
+      
+      //myIO::fread(&nvertex,sizeof(NDNET_UINT),1,f,swap);
+      myIO::fread_ului(&nvertex,sizeof(NDNET_UINT),1,indexSize,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      
+      // Skip v_coord
+      fseek(f,floatSize*(size_t)nvertex*(size_t)ndims,SEEK_CUR);
+      //v_coord=(NDNET_FLOAT*) malloc(sizeof(NDNET_FLOAT)*(size_t)ndims*(size_t)nvertex);
+      //myIO::fread_fd(v_coord,sizeof(NDNET_FLOAT),(size_t)nvertex*(size_t)ndims,floatSize,f,swap);
+
+      floatSize = sizeof(float);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      nfaces=(NDNET_UINT*)malloc(sizeof(NDNET_UINT)*((size_t)ndims+1));
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+      myIO::fread_ului(nfaces,sizeof(NDNET_UINT),((size_t)ndims+1),indexSize,f,swap);
+      myIO::fread(&dummy,sizeof(int),1,f,swap);
+
+      return 0;
+    }
+
     int read(const char *filename, int verbose=1)
     {
       long i,j,k;
