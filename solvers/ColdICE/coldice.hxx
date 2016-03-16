@@ -1889,7 +1889,6 @@ protected:
 	      }
 
 	    PDGType *gradient=s->projectedDensityGradient.getPointer();
-
 	    dice::BarycentricCoordinatesT<D,CT,GeometricProperties> 
 	      bc(vCoords,*geometry);
 
