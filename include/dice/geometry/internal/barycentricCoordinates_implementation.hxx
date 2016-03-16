@@ -2,7 +2,7 @@
 #define __BARYCENTRIC_COORDINATES_IMPL_HXX__
 
 #include "../../algebra/inverseMatrix.hxx"
-
+#include "../../tools/helpers/helpers.hxx"
 #include "../../internal/namespace.header"
 
 namespace internal {
@@ -16,7 +16,8 @@ namespace internal {
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {      
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
+      return hlp::numericStaticCast<double>
+	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
     }
 
     template <class T1, class T2>
@@ -47,7 +48,8 @@ namespace internal {
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));
+      return hlp::numericStaticCast<double>
+	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));
     }
 
     template <class T1, class T2>
@@ -70,7 +72,8 @@ namespace internal {
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {      
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
+      return hlp::numericStaticCast<double>
+	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
     }
     
     template <class T1, class T2>
@@ -94,7 +97,8 @@ namespace internal {
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));          
+      return hlp::numericStaticCast<double>
+	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));          
     }
     
     template <class T1, class T2>
