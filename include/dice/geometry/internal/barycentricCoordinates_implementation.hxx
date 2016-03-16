@@ -14,9 +14,9 @@ namespace internal {
     static const int NDIM = ND;
 
     template <class T>
-    bool computeCoeffs(const T (&base)[NDIM][NDIM])
+    double computeCoeffs(const T (&base)[NDIM][NDIM])
     {      
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix)==0);    
+      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
     }
 
     template <class T1, class T2>
@@ -45,9 +45,9 @@ namespace internal {
     static const int NDIM = 1;
     
     template <class T>
-    bool computeCoeffs(const T (&base)[NDIM][NDIM])
+    double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix)==0);
+      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));
     }
 
     template <class T1, class T2>
@@ -68,9 +68,9 @@ namespace internal {
     static const int NDIM = 2;
 
     template <class T>
-    bool computeCoeffs(const T (&base)[NDIM][NDIM])
+    double computeCoeffs(const T (&base)[NDIM][NDIM])
     {      
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix)==0);    
+      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
     }
     
     template <class T1, class T2>
@@ -92,9 +92,9 @@ namespace internal {
     static const int NDIM = 3;
     
     template <class T>
-    bool computeCoeffs(const T (&base)[NDIM][NDIM])
+    double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix)==0);          
+      return (InverseMatrixT<NDIM,T,CT>::compute(base,matrix));          
     }
     
     template <class T1, class T2>
