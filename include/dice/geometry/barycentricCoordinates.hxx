@@ -72,7 +72,7 @@ public:
 
     T base[ND][ND];
     geometry.template getBaseVectors<T,T,ND,ND>(coords,base);   
-    degenerate = Base::computeCoeffs(base);
+    det = Base::computeCoeffs(base);
   }
 
   /** \param coords The ND+1 coordinates of the simplex vertices
@@ -88,7 +88,7 @@ public:
 
     T base[ND][ND];
     geometry.template getBaseVectors<T,T,ND,ND>(coords,base);   
-    degenerate = Base::computeCoeffs(base);
+    det = Base::computeCoeffs(base);
   }
   
 
@@ -103,7 +103,7 @@ public:
 
     T base[ND][ND];
     geometry.template getBaseVectors<T,T,ND,ND>(coords,base);   
-    degenerate = Base::computeCoeffs(base);
+    det = Base::computeCoeffs(base);
   }
 
   /** \param coords The ND+1 coordinates of the simplex vertices  
@@ -117,7 +117,7 @@ public:
 
     T base[ND][ND];
     geometry.template getBaseVectors<T,T,ND,ND>(coords,base);   
-    degenerate = Base::computeCoeffs(base);
+    det = Base::computeCoeffs(base);
   }
 
   /* \param simplex A simplex (see SimplexT)  
@@ -159,7 +159,7 @@ public:
   template <class T, class T2>
   bool computeGradient(const T fVal[], T2 gradient[]) const //,bool debug=false) const
   {
-    if (degenerate)
+    if (isDegenerate())
       {
 	for (int i=0;i<NDIM;++i)
 	  gradient[i]=0;
@@ -200,7 +200,7 @@ public:
 	  gradient[i]=hlp::numericStaticCast<T2>(tmp[i]);
 	
       }
-    return degenerate;
+    return isDegenerate();
   }
 
 
@@ -270,9 +270,25 @@ public:
   /** \brief check if the simplex is degenerate
    *  \return true if the simplex is degenerate, false otherwise
    */
-  bool isDegenerate()
+  bool isDegenerate() const
   {
-    return degenerate;
+    return (det==0);
+  }
+  
+  /** \brief check the orientation of the simplex
+   *  \return true if the simplex is positively oriented
+   */
+  bool orientation() const
+  {
+    return (det>=0);
+  }
+
+  /** \brief compute signed volume
+   *  \return the signed volume of the simplex
+   */
+  double determinant() const
+  {
+    return det;
   }
 
 private:
@@ -280,7 +296,8 @@ private:
     
   const GeometricProperties &geometry;
   Coord origin[NDIM];
-  bool degenerate;
+  double det;
+  //bool degenerate;
 };
 
 /** \}*/
