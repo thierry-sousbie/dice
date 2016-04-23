@@ -129,12 +129,14 @@ namespace internal {
       //const typename M::Coord* c0 = simplex->getVertex(0)->getCoordsConstPtr();
       wdf(simplex,grad);
       HT wei=wf(simplex->getVertex(0));
+      
       for (int i=0;i<M::NDIM;++i)
 	{
 	  HT g=grad[i];
 	  HT c=coords[i];
 	  wei-=g*c;
 	}
+      
       return hlp::numericStaticCast<OUT>(wei);
     }
     

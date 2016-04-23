@@ -69,8 +69,8 @@
 
 // 403
 /*
-#define DEBUG_CHECK 5899717509016193024
-#define DEBUG_CHECK_COORD {0.500977,0.454102,0.639648}
+#define DEBUG_CHECK 36028797975265280
+#define DEBUG_CHECK_COORD {-0.05,-0.49}
 #define DEBUG_CHECK_RANK 0
 */
 /*
@@ -153,22 +153,23 @@ public:
   void tagSimplex(AMR *amr,Simplex *s, 
 		  double bBox[2][Simplex::NDIM],
 		  double maxLevelVoxelLengthInv[Simplex::NDIM],
-		  double v, double sMin, double sMax) const
+		  double v, double sMin, double sMax,
+		  bool bBoxIsConsistent=true) const
   {
     s->cache.c[0]=ProjectionTag::regular;
     bool inside=true;
     for (int j=0;j<Simplex::NDIM;++j)
       {		  
-	int a=(int)((bBox[0][j]-amr->getBBoxMin(j)-amr->getEpsilon(j))*
+	int a=(int)((bBox[0][j]-amr->getBBoxMin(j)-amr->getEpsilon(j)*10)*
 		    maxLevelVoxelLengthInv[j]);
-	int b=(int)((bBox[1][j]-amr->getBBoxMin(j)+amr->getEpsilon(j))*
+	int b=(int)((bBox[1][j]-amr->getBBoxMin(j)+amr->getEpsilon(j)*10)*
 		    maxLevelVoxelLengthInv[j]);
 	inside &= (a==b);
       }
    
-    if (inside) s->cache.c[0]=ProjectionTag::sampleNoOverlap;    
+    if ((inside)&&(bBoxIsConsistent)) s->cache.c[0]=ProjectionTag::sampleNoOverlap;    
     else 
-      {
+      {	
 	if (s->getLevel()>=levelThreshold) //level
 	  s->cache.c[0]=lvlMethod;	
 	else if (v<volumeThreshold) //volume
@@ -177,7 +178,8 @@ public:
 	  s->cache.c[0]=lMethod;
 	else if (sMax > sMin*anisotropyThreshold) //anisotropy
 	  s->cache.c[0]=aMethod;
-      }    
+      }
+    //s->cache.c[0]=ProjectionTag::regular;
   }
   /*
   template <class Simplex>
@@ -1096,7 +1098,7 @@ private:
 		  {
 #pragma omp critical
 		    glb::console->print<LOG_STD_ALL>
-		      ("ADDING opposite simplex vertex");// : %g\n",
+		      ("ADDED opposite simplex vertex\n");// : %g\n",
 		      //hlp::numericStaticCast<double>(-contrib));
 		  }	
 #endif	

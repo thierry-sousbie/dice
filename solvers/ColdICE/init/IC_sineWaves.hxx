@@ -120,7 +120,12 @@ public:
       coords[j]+=dx[j]*delta_[j];
     for (int j=0;j<NDIM;++j)
       coords[j+NDIM]+=dv[j]*delta_[j];
-      
+
+    // Staggered grid !
+    //for (int j=0;j<NDIM;++j)
+    //  coords[j]+=1.0/256.0*0.123;
+    //coords[j]+=0.5*delta_[j]/sgParams.resolution[j];
+    
   }
 
   Params getParams()

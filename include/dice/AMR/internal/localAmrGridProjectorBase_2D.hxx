@@ -161,18 +161,18 @@ namespace internal {
       Float vecN[NDIM];	       // Normal vector;
       int flags;
 
-      void print()
+      void print() const
       {
-	printf ("S:%ld V:%ld OS:%ld OV:%ld\n",simplex,vertex,otherSimplex,otherVertex);
+	//printf ("S:%ld V:%ld OS:%ld OV:%ld\n",simplex,vertex,otherSimplex,otherVertex);
 	printf("deltaW = %e\n",(double)deltaWeight);
-	printf("deltaGrad = %e\n",(double)deltaGrad[0],(double)deltaGrad[1]);
-	printf("vecT = %e\n",(double)vecT[0],(double)vecT[1]);
-	printf("vecN = %e\n",(double)vecN[0],(double)vecN[1]);
+	printf("deltaGrad = %e %e\n",(double)deltaGrad[0],(double)deltaGrad[1]);
+	printf("vecT = %e %e\n",(double)vecT[0],(double)vecT[1]);
+	printf("vecN = %e %e\n",(double)vecN[0],(double)vecN[1]);
 	printf("flags = %d\n",flags);
 	simplex->template print<LOG_STD>("S:");
 	otherSimplex->template print<LOG_STD>("OS:");
-	vertex->template print<LOG_STD>("");
-	otherVertex->template print<LOG_STD>("");
+	vertex->template print<LOG_STD>();
+	otherVertex->template print<LOG_STD>();
       }
     };
 
@@ -529,12 +529,12 @@ namespace internal {
 
 	  for (int i=0;i<NDIM;++i) 
 	    {
-	      if (amr->getBBoxMax(i)-amr->getEpsilon(i)<exitPoint[i]) 
+	      if (amr->getBBoxMax(i)-amr->getEpsilon(i)*10<exitPoint[i]) 
 		boundary|=1<<i;
-	      else if (amr->getBBoxMin(i)+amr->getEpsilon(i)>exitPoint[i]) 
+	      else if (amr->getBBoxMin(i)+amr->getEpsilon(i)*10>exitPoint[i]) 
 		boundary|=1<<i;
 	    }
-	 
+	  
 	  // if (check) printf("OnBoundary = %d\n",boundary);
 	  if (boundary)
 	    {
@@ -682,6 +682,27 @@ namespace internal {
       Float contrib = edge.deltaWeight;
       Float PT = edge.vecT[0]*coord[0] + edge.vecT[1]*coord[1];
       Float PN = edge.vecN[0]*coord[0] + edge.vecN[1]*coord[1];
+
+      /*
+      std::cout.precision(20);
+      std::cout <<"Contrib("<< edge.flags<<")@("<< coord[0] <<", "<< coord[1]<<")"<<std::endl;
+      
+      std::cout << "v1("
+		<< edge.vertex->getCoord(0) <<", "
+		<< edge.vertex->getCoord(1) <<")"<<std::endl;
+      std::cout << "v2("
+		<< edge.otherVertex->getCoord(0) <<", "
+		<< edge.otherVertex->getCoord(1) <<")"<<std::endl;
+      
+      std::cout << "wei: " << edge.simplex->getLocalIndex() << "_"
+		<< wf.template get<Float>(edge.simplex) << " / "
+		<< edge.otherSimplex->getLocalIndex() << "_"
+		<< wf.template get<Float>(edge.otherSimplex) << std::endl;
+      std::cout << std::scientific<<contrib << " " <<PT <<" " 
+       		<< PN <<std::endl;
+      */
+      
+      
       
       if (WF::ORDER>0)
 	{
@@ -690,7 +711,10 @@ namespace internal {
 	  
 	  if (AMR::BOUNDARY_TYPE == BoundaryType::PERIODIC)
 	    contrib = getPeriodizedDeltaWeight(coord,wf,edge);
-	 	  
+	  /*
+	  std::cout <<std::scientific<<contrib << " " <<GT <<" " 
+		    <<GN <<std::endl;
+	  */
 	  contrib += (GN*PN*2.0 + GT*PT)/3.0;	  
 	}
       
@@ -734,11 +758,11 @@ namespace internal {
       Float PT1 = edge.vecT[0]*coord[0] + edge.vecT[1]*coord[1];
       Float PN1 = edge.vecN[0]*coord[0] + edge.vecN[1]*coord[1];
       Float PTPN2 = coord[0]*coord[1]*Tsign*Nsign;
-
-      // std::cout.precision(20);
-      // std::cout <<std::scientific<<contrib1 << " " <<contrib2 <<" " <<PT1 <<" " 
-      // 		<<PN1 << " " <<PTPN2 <<std::endl;
-      
+      /*
+       std::cout.precision(20);
+       std::cout <<std::scientific<<contrib1 << " " <<contrib2 <<" " <<PT1 <<" " 
+       		<<PN1 << " " <<PTPN2 <<std::endl;
+      */
       if (WF::ORDER>0)
 	{
 	  Float GT1=edge.vecT[0]*edge.deltaGrad[0]+edge.vecT[1]*edge.deltaGrad[1];
@@ -748,7 +772,10 @@ namespace internal {
 
 	  if (AMR::BOUNDARY_TYPE == BoundaryType::PERIODIC)
 	    contrib1=contrib2=getPeriodizedDeltaWeight(coord,wf,edge);
-	 
+	  /*
+	  std::cout <<std::scientific<<contrib1 << " " <<contrib2 <<" " <<GT1 <<" " 
+		    <<GN1 << " " <<GNPN2 <<" "<<GTPT2<<std::endl;
+	   */
 	  contrib1 += (GN1*PN1*2.0 + GT1*PT1)/3.0;	
 	  contrib2 += (GNPN2*2.0 + GTPT2)/3.0;	 
 	}

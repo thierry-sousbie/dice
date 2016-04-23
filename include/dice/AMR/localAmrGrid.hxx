@@ -717,9 +717,11 @@ public:
 	      char lvl = std::min(reqLvl,maxLevel);
 
 	      double bBox[2][NDIM];
-	      mesh->template computeBoundingBox<Simplex*,NDIM>(s,bBox);	          
+	      bool bBoxIsConsistent = mesh->
+		template computeBoundingBox<Simplex*,NDIM>(s,bBox);	          
 	     	      
-	      tagger.tagSimplex(this,s,bBox,maxLevelVoxelLengthInv,v,sMin,sMax);
+	      tagger.tagSimplex(this,s,bBox,
+				maxLevelVoxelLengthInv,v,sMin,sMax,bBoxIsConsistent);
 	      /*
 	      if (setSimplexCache)
 		{	

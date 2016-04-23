@@ -1339,8 +1339,9 @@ public:
   // NOTE: the reference vertex for PBC is vertex 0 
   // SH is a pointer to a simplex or a facet handle
   template <class SH, int D>
-  void computeBoundingBox(const SH s, Coord bBox[2][D]) const
+  bool computeBoundingBox(const SH s, Coord bBox[2][D]) const
   {
+    bool consistent=true;
     const Coord *refCoords = s->getVertex(0)->getCoordsConstPtr();
 
     for (int j=0;j<D;++j) 
@@ -1359,8 +1360,12 @@ public:
 	      bBox[0][k]=c;
 	    if (bBox[1][k]<c)
 	      bBox[1][k]=c;
+
+	    if (c!=coords[k]) consistent=false;
 	  }	
       }
+    
+    return consistent;
   }
   
   template <class S, typename CT, typename IT, int D=S::NDIM_W>

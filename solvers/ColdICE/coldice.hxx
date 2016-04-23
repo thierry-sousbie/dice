@@ -1293,6 +1293,48 @@ protected:
   {
     long reprojectedSimplicesCount=0;
 
+    /* REMOVE ME !! 
+    std::vector<double*> vCoord(mesh->getNVertices(),0);
+    
+    const vertexPtr_LGS_iterator itv_end=mesh->vertexLGSEnd();
+    for (vertexPtr_LGS_iterator it=
+	   mesh->vertexLGSBegin();it!=itv_end;++it)
+      {
+	Vertex *v=(*it);
+	vCoord[v->getLocalIndex()]=v->getCoordsPtr();
+      }
+    
+    // vCoord[17][0]=vCoord[81][0];
+    // vCoord[18][0]=vCoord[82][0];
+    // vCoord[19][0]=vCoord[83][0];
+
+    // vCoord[81][1]=-0.484375;
+    // vCoord[82][1]=-0.484375;
+    // vCoord[83][1]=-0.484375;
+
+    // vCoord[4049][1]=0.484375;
+    // vCoord[4050][1]=0.484375;
+    // vCoord[4051][1]=0.484375;
+    
+    //const vertexPtr_LGS_iterator itv_end=mesh->vertexLGSEnd();
+    for (vertexPtr_LGS_iterator it=
+	   mesh->vertexLGSBegin();it!=itv_end;++it)
+      {
+	Vertex *v=(*it);
+	Coord *c=v->getCoordsPtr();
+	if ((v->getLocalIndex()==81)||(v->getLocalIndex()==4049)||
+	    (v->getLocalIndex()==82)||(v->getLocalIndex()==18)||
+	    (v->getLocalIndex()==19)||(v->getLocalIndex()==83)||
+	    (v->getLocalIndex()==4050)||(v->getLocalIndex()==4051)||
+	    (v->getLocalIndex()==17))
+	  {
+	    //if (c[1]<-0.499) c[1]=-0.5;
+	    printf("%d: %.20e %.20e\n",v->getLocalIndex(),c[0],c[1]);
+	  }
+      }
+    updateProjectedDensityField();
+    ****************/
+
     projectTimer->start(); 
     if (projectionOrder==0)
       {
@@ -1891,8 +1933,22 @@ protected:
 	    PDGType *gradient=s->projectedDensityGradient.getPointer();
 	    dice::BarycentricCoordinatesT<D,CT,GeometricProperties> 
 	      bc(vCoords,*geometry);
+	    
+	    bc.computeGradient(d,gradient);
+	    /*
+	    gradient[1]=0;
+	    if (it->getLocalIndex()==36) gradient[1]=0;
+	    if (it->getLocalIndex()==34) gradient[1]=0;
 
-	    bc.computeGradient(d,gradient);	
+	    if (it->getLocalIndex()==35) gradient[1]=0;
+	    if (it->getLocalIndex()==37) gradient[1]=0;
+
+	    if (it->getLocalIndex()==8100) gradient[1]=0;
+	    if (it->getLocalIndex()==8098) gradient[1]=0;
+
+	    if (it->getLocalIndex()==8099) gradient[1]=0;
+	    if (it->getLocalIndex()==8101) gradient[1]=0;
+	    */
 	  }
       }
     FOREACH_THREAD_END;

@@ -673,9 +673,9 @@ namespace internal {
 
 	  for (int i=0;i<NDIM;++i) 
 	    {
-	      if (amr->getBBoxMax(i)-amr->getEpsilon(i)<exitPoint[i]) 
+	      if (amr->getBBoxMax(i)-amr->getEpsilon(i)*10<exitPoint[i]) 
 		boundary|=1<<i;
-	      else if (amr->getBBoxMin(i)+amr->getEpsilon(i)>exitPoint[i]) 
+	      else if (amr->getBBoxMin(i)+amr->getEpsilon(i)*10>exitPoint[i]) 
 		boundary|=1<<i;
 	    }
 

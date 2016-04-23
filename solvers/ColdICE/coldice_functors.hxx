@@ -34,6 +34,7 @@ public:
   {
     double result=Base::mesh->template computeProjectedVolume<Cell,long double>(c);
     if (result!=0) result=c->mass.getValue()/result; // 1.0L
+    
     return result;
   }
   double get(const Cell *c, int n) const {return get(c);}

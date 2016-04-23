@@ -426,7 +426,7 @@ private:
   {
     Float dMin;
     bool needExactComputation=false;
-    
+
     exitDim=0; // index of the dimension along which the ray is exiting
     
     /* THIS FILTER IS NOT TESTED VERY MUCH, CHECK IF IT FAILS */
@@ -499,7 +499,7 @@ private:
 
 
 
-    /* THIS FILTER WORKS !!!! Check speed compared to untested*/     
+    /* THIS FILTER IS VERIFIED ... Check speed compared to untested */     
     if (invalidDir==0)
       {
 	dMin=(corner[0]-origin[0])*direction_inv[0];
