@@ -1196,7 +1196,7 @@ public:
 	ICoordUnitLen[i]=deltaX[i]/BBOX_ILEN;
 	//printf("ICoordUnitLen[%d]=%g\n",i,ICoordUnitLen[i]);
 	epsilon[i]=std::max(fabs(xMin[i]),fabs(xMax[i]))*
-	  (std::numeric_limits<double>::epsilon()*20.0);
+	  (std::numeric_limits<double>::epsilon()*200.0);
 
 	//epsilon[i]=deltaX[i]*(std::numeric_limits<double>::epsilon()*100.0);
 	halfEpsilon[i]=epsilon[i]/2;
