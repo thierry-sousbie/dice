@@ -765,8 +765,15 @@ public:
 
     oldSolverDeltaT=curSolverDeltaT;
     curSolverDeltaT=newDeltaT;
-       
-    fileDumps.updateState(curStepIndex,curSolverTime,curSolverDeltaT,mpiCom);
+
+    if (units.useCosmo)
+      {
+	double a  = units.cosmology.a_of_tau(curSolverTime,aStart);
+	double da = units.cosmology.a_of_tau(curSolverTime+curSolverDeltaT,aStart) - a;
+	fileDumps.updateState(curStepIndex,a,da,mpiCom);
+      }
+    else
+      fileDumps.updateState(curStepIndex,curSolverTime,curSolverDeltaT,mpiCom);
   }
 
   void onAdvance()
