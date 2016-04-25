@@ -216,7 +216,7 @@ private:
 	char name[255];
 	
 	sprintf(description,
-		"Sets %s file dumps time interval (fmt: 'start:stop:every').",
+		"Sets %s file dumps time interval (fmt: 'start:stop:every' or a filename containg discrete dump times).",
 		info.description.c_str());
 	sprintf(name,"%sAt",info.name.c_str());
 	//printf("Parsing %s (%f>=%f)\n",name,serializedVersion,info.introducedAtVersion);

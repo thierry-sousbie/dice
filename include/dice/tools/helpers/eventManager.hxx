@@ -69,10 +69,34 @@ public:
     
   void addEventsFromFile(std::string &fname)
   {
-    PRINT_SRC_INFO(LOG_ERROR);
-    glb::console->print<LOG_ERROR>("Cannot add events from file '%s'.\n",fname.c_str());
-    glb::console->print<LOG_ERROR>("Events from files NOT IMPLEMENTED YET\n");
-    exit(-1);
+    std::ifstream pFile(fname);
+    int nAdded=0;
+    
+    glb::console->printFlush<LOG_STD>("Adding dump events from file '%s' ... ",fname.c_str());
+    if (pFile.is_open())
+      {
+	while(!pFile.eof())
+	  {
+	    std::string line;
+	    std::getline(pFile, line);
+	    std::stringstream ss(line);
+	    double tmp;
+	    while(ss >> tmp)
+	      {
+		addSingleEvent(tmp);
+		nAdded++;
+	      }
+	  } 
+	pFile.close();
+	glb::console->print<LOG_STD>("done. (%d events added)\n",nAdded);
+      }
+    else
+      {
+	PRINT_SRC_INFO(LOG_ERROR);
+	glb::console->print<LOG_ERROR>("Cannot add events from file '%s'.\n",fname.c_str());
+	glb::console->print<LOG_ERROR>("FILE NOT FOUND.\n");
+	exit(-1);
+      }
   }
 
   void addSingleEvent(double at)

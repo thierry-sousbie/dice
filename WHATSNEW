@@ -1,5 +1,7 @@
 v0.9.47
   - Corrected a rare projection bug that may happen on edge pixels when using periodic boundary conditions. The bug usually had no consequences on long term evolution.
+  - Added the possibility to load dump times from a file
+  - Dump times when doing cosmology are now expressed in terms of expansion factor instead of superconformal time 
 
 v0.9.46
   - Corrected matrix inversion (was computing the transposed inverse previously)
