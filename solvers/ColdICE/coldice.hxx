@@ -703,7 +703,7 @@ public:
       }
     else
       {
-	if (units.useCosmo) out << " " << units.cosmology.a_of_tau(t,aStart);
+	if (units.useCosmo) out << " " << units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);
       }
   }
 
@@ -725,7 +725,7 @@ public:
       }
     else
       {
-	if (units.useCosmo) out << " " << units.cosmology.a_of_tau(t,aStart);
+	if (units.useCosmo) out << " " << units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);
 	out << " " << projectedMassErr
 	    << " " << totalVolume
 	    << " " << totalVolume_Q
@@ -768,8 +768,8 @@ public:
 
     if (units.useCosmo)
       {
-	double a  = units.cosmology.a_of_tau(curSolverTime,aStart);
-	double da = units.cosmology.a_of_tau(curSolverTime+curSolverDeltaT,aStart) - a;
+	double a  = units.cosmology.a_of_tau(curSolverTime,aStart,1.E-8,aEnd*2);
+	double da = units.cosmology.a_of_tau(curSolverTime+curSolverDeltaT,aStart,1.E-8,aEnd*2) - a;
 	fileDumps.updateState(curStepIndex,a,da,mpiCom);
       }
     else
@@ -992,7 +992,7 @@ protected:
 
 		if (units.useCosmo)
 		  {
-		    double a=units.cosmology.a_of_tau(t,aStart);
+		    double a=units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);
 		    double fact = (3.0*a*units.cosmology.getParams().oM)/2.0;
 		    double volume=1.0L;
 		    for (int i=0;i<NDIM;++i) volume *= mesh->getParams().delta[i];
@@ -1514,7 +1514,7 @@ protected:
 
     if (units.useCosmo)
       {
-	a=units.cosmology.a_of_tau(t,aStart);	
+	a=units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);	
 	unitsK*=pow(a/units.H,2.0)*units.cosmology.getParams().oM;
 	unitsP*=units.cosmology.getParams().oM;//pow(units.length,NDIM);
 	dice::glb::console->print<dice::LOG_STD>("Solving poisson equation (a=%g):\n",a);
@@ -1774,8 +1774,8 @@ protected:
     if (units.useCosmo)
       {
 	double dt=0.5*(curSolverDeltaT+oldSolverDeltaT);
-	double a0=units.cosmology.a_of_tau(t-dt,aStart);	
-	double amid=units.cosmology.a_of_tau(t-0.5*curSolverDeltaT,aStart);
+	double a0=units.cosmology.a_of_tau(t-dt,aStart,1.E-8,aEnd*2);	
+	double amid=units.cosmology.a_of_tau(t-0.5*curSolverDeltaT,aStart,1.E-8,aEnd*2);
 
 	expansionEnergy-=(a-a0)/amid *
 	  (oldPotentialEnergy*oldSolverDeltaT+potentialEnergy*curSolverDeltaT)/
@@ -1995,7 +1995,7 @@ protected:
     invariantFactor=units.velocity*units.length;
     if (units.useCosmo)
       {	
-	double a=units.cosmology.a_of_tau(t,aStart);
+	double a=units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);
 	
 	invariantFactor *= 
 	  a/(units.H*maxBoxLen*maxBoxLen*units.length*units.length);	 
@@ -2022,7 +2022,7 @@ protected:
 
     if (units.useCosmo)
       {
-	a=units.cosmology.a_of_tau(t,aStart);
+	a=units.cosmology.a_of_tau(t,aStart,1.E-8,aEnd*2);
 	double volume=1.0L;
 	for (int i=0;i<NDIM;++i)
 	  volume *= mesh->getParams().delta[i];
@@ -2075,7 +2075,7 @@ protected:
       {
 	dice::glb::console->print<dice::LOG_STD>
 	  ("New expansion factor is a=%g / z=%g (da=%g)\n",
-	   a,1.0/a-1.0,units.cosmology.a_of_tau(t+dt,aStart)-a);
+	   a,1.0/a-1.0,units.cosmology.a_of_tau(t+dt,aStart,1.E-8,aEnd*2)-a);
       }
   }
 
@@ -2124,7 +2124,7 @@ protected:
     double driftFactor=1.0/(units.length/units.velocity);
     if (units.useCosmo)
       {
-	double a=units.cosmology.a_of_tau(curSolverTime,aStart);
+	double a=units.cosmology.a_of_tau(curSolverTime,aStart,1.E-8,aEnd*2);
 	// h0 -> H0 in s-1	
 	driftFactor*=a/units.H;
       }
@@ -2230,8 +2230,8 @@ protected:
 
     if (units.useCosmo)
       {
-	double a0=units.cosmology.a_of_tau(curSolverTime,aStart);
-	double a1=units.cosmology.a_of_tau(curSolverTime + curSolverDeltaT,aStart);
+	double a0=units.cosmology.a_of_tau(curSolverTime,aStart,1.E-8,aEnd*2);
+	double a1=units.cosmology.a_of_tau(curSolverTime + curSolverDeltaT,aStart,1.E-8,aEnd*2);
 	 
 	velFactor = a0/a1;
 	// h0 -> H0 in s-1	

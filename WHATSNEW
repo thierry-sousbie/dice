@@ -1,3 +1,6 @@
+v0.9.48
+  - Corrected a bug that would make the code stuck at a=2 when using cosmology and aEnd>=2 
+
 v0.9.47
   - Corrected a rare projection bug that may happen on edge pixels when using periodic boundary conditions. The bug usually had no consequences on long term evolution.
   - Added the possibility to load dump times from a file
