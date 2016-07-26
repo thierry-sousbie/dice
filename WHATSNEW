@@ -1,3 +1,6 @@
+v0.9.49
+  - Code compile correctly with gcc 6
+
 v0.9.48
   - Corrected a bug that would make the code stuck at a=2 when using cosmology and aEnd>=2 
 

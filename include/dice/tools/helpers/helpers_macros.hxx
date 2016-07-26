@@ -1,10 +1,13 @@
 #ifndef __HELPERS_MACROS_HXX__
 #define __HELPERS_MACROS_HXX__
 
+#include <stddef.h>
+
 // Remove warnings for unused variable
 #define UNUSED_VARIABLE(expr) (void)(expr)
 
-#define OFFSETOF(type, field)    ((size_t) ( (char *)&((type *)(0))->field - (char *)0 ))
+//#define OFFSETOF(type, field)    ((size_t) ( (char *)&((type *)(0))->field - (char *)0 ))
+#define OFFSETOF(type, field)    offsetof(type,field)
 #define OFFSETOF_D(inst,field)    ((size_t) ( (char *)&inst->field - (char *)&inst ))
 
 #define DO_STRINGIFY(x) #x
