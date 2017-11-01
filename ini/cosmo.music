@@ -27,7 +27,7 @@ filename = ics_gadget.dat
 shift_back = yes
 gadget_num_files = 1
 [poisson]
-fft_fine = no
+fft_fine = yes
 accuracy = 1e-5
 pre_smooth = 3
 post_smooth = 3
