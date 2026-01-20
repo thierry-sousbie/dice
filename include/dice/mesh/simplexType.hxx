@@ -2,7 +2,7 @@
 #define __SIMPLEX_TYPE_HXX__
 
 /**
- * @file 
+ * @file
  * @brief Defines Simplex type implementation specialization template parameters
  * @author Thierry Sousbie
  */
@@ -17,12 +17,14 @@
  * \namespace simplexType
  * \brief Defines Simplex type implementation specialization template parameters
  */
-namespace simplexType {
+namespace simplexType
+{
 
-enum Type {
-  VerticesOnly=0,
-  WithSegments=1
-};
+  enum Type
+  {
+    VerticesOnly = 0,
+    WithSegments = 1
+  };
 
 };
 

@@ -4,7 +4,7 @@
 #include <functional>
 
 /**
- * @file 
+ * @file
  * @brief  Definition of a few default filters for NDnet unstructured mesh outputs
  * @author Thierry Sousbie
  */
@@ -14,19 +14,20 @@
  *   \{
  */
 
-namespace IO {
+namespace IO
+{
 
   /**
    * \class NDnetFilter_dataThresholdT
-   * \brief A filter for NDnetUnstructuredMeshWriterT that filter cells by thresholding 
+   * \brief A filter for NDnetUnstructuredMeshWriterT that filter cells by thresholding
    * with respect to a given cell data
    * \tparam M The mesh class
    * \tparam CellType The type of cells to filter (M::Vertex or M::Simplex)
-   * \tparam Compare  Binary function that accepts two double elements as arguments : the 
-   * first is the vakue associated to a cell and the second a threshold. The function 
+   * \tparam Compare  Binary function that accepts two double elements as arguments : the
+   * first is the vakue associated to a cell and the second a threshold. The function
    * returns true if the cell passed the test, false otherwise.
    */
-  template <class M, class CellType, class Compare = std::less<double> >
+  template <class M, class CellType, class Compare = std::less<double>>
   class NDnetFilter_dataThresholdT
   {
   public:
@@ -38,16 +39,16 @@ namespace IO {
      *  \param threshold The filter threshold
      *  \param cmp The comparison functor (see Compare)
      */
-    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name, 
-			       double threshold, Compare cmp = Compare())
+    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name,
+                               double threshold, Compare cmp = Compare())
     {
-      functor=mesh->getSimplexFunctorPtr(name);
-      th=threshold;
-      compare=cmp;
+      functor = mesh->getSimplexFunctorPtr(name);
+      th = threshold;
+      compare = cmp;
     }
     /*
-    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name, 
-			      double threshold)
+    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name,
+            double threshold)
     {
       simplexFunctor=mesh->getSimplexFunctorPtr(cellData);
       th=threshold;
@@ -56,11 +57,12 @@ namespace IO {
     */
     Cell *operator()(Cell *cell) const
     {
-      if (compare(functor(cell),th))
-	return cell;
-      else return static_cast<Cell*>(NULL);
+      if (compare(functor(cell), th))
+        return cell;
+      else
+        return static_cast<Cell *>(NULL);
     }
-    
+
   private:
     typename M::SimplexFunctor *functor;
     double th;
@@ -68,21 +70,21 @@ namespace IO {
   };
 
   template <class M, class Compare>
-  class NDnetFilter_dataThresholdT<M,typename M::Vertex, Compare>
+  class NDnetFilter_dataThresholdT<M, typename M::Vertex, Compare>
   {
   public:
     typedef typename M::Vertex Cell;
-    
-    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name, 
-			      double threshold, Compare cmp=Compare())
+
+    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name,
+                               double threshold, Compare cmp = Compare())
     {
-      functor=mesh->getVertexFunctorPtr(name);
-      th=threshold;
-      compare=cmp;
+      functor = mesh->getVertexFunctorPtr(name);
+      th = threshold;
+      compare = cmp;
     }
     /*
-    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name, 
-			       double threshold)
+    NDnetFilter_dataThresholdT(const M *mesh, const std::string &name,
+             double threshold)
     {
       vertexFunctor=mesh->getVertexFunctorPtr();
       th=threshold;
@@ -92,16 +94,17 @@ namespace IO {
 
     Cell *operator()(Cell *cell) const
     {
-      if (compare(functor(cell),th))
-	return cell;
-      else return static_cast<Cell*>(NULL);
+      if (compare(functor(cell), th))
+        return cell;
+      else
+        return static_cast<Cell *>(NULL);
     }
-    
+
   private:
     typename M::VertexFunctor *functor;
     double th;
     Compare compare;
-  }; 
+  };
 
 } // namespace IO
 

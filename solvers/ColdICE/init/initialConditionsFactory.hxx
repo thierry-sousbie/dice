@@ -1,9 +1,9 @@
 #ifndef __INITIAL_CONDITIONS_FACTORY_HXX__
 #define __INITIAL_CONDITIONS_FACTORY_HXX__
 
-#include <string> 
-#include <iostream> 
-#include <sstream> 
+#include <string>
+#include <iostream>
+#include <sstream>
 
 #include <dice/tools/helpers/helpers.hxx>
 #include <dice/tools/MPI/mpiCommunication.hxx>
@@ -15,83 +15,85 @@ public:
   typedef typename ICL::Type::Interface IC;
 
   template <class MT, class PM, class R>
-  static IC* create(const std::string &which, PM &manager, R *reader, 
-		    dice::MpiCommunication *com=0) // nullptr
+  static IC *create(const std::string &which, PM &manager, R *reader,
+                    dice::MpiCommunication *com = 0) // nullptr
   {
-    typedef typename dice::hlp::ConstantValue< (ICL::SIZE>0) > Continue;
-    return createHelper<ICL,MT>(which,manager,reader,com,Continue());
+    typedef typename dice::hlp::ConstantValue<(ICL::SIZE > 0)> Continue;
+    return createHelper<ICL, MT>(which, manager, reader, com, Continue());
   }
 
   static void getList(std::vector<std::string> &result)
   {
-    typedef typename dice::hlp::ConstantValue< (ICL::SIZE>0) > Continue;
+    typedef typename dice::hlp::ConstantValue<(ICL::SIZE > 0)> Continue;
 
     result.clear();
-    getListHelper<ICL>(result,Continue());
+    getListHelper<ICL>(result, Continue());
   }
 
-  static std::string getList(const char separator[]=", ")
+  static std::string getList(const char separator[] = ", ")
   {
     std::vector<std::string> result;
     std::stringstream ss;
     getList(result);
 
     auto it = result.begin();
-    if (it==result.end()) return std::string("");
+    if (it == result.end())
+      return std::string("");
 
     ss << *(it++);
-    while (it!=result.end())
+    while (it != result.end())
       ss << separator << *(it++);
 
     return ss.str();
   }
 
-private: 
+private:
   template <class TL, class MT, class PM, class R>
-  static IC* createHelper(const std::string &which, PM &manager, R *reader, 
-			  dice::MpiCommunication *com,
-			  dice::hlp::ConstantValue<false>)
+  static IC *createHelper(const std::string &which, PM &manager, R *reader,
+                          dice::MpiCommunication *com,
+                          dice::hlp::ConstantValue<false>)
   {
-    return static_cast<IC*>(NULL);
+    return static_cast<IC *>(NULL);
   }
 
   template <class TL, class MT, class PM, class R>
-  static IC* createHelper(const std::string &which, PM &manager, R *reader, 
-			  dice::MpiCommunication *com,
-			  dice::hlp::ConstantValue<true>)
+  static IC *createHelper(const std::string &which, PM &manager, R *reader,
+                          dice::MpiCommunication *com,
+                          dice::hlp::ConstantValue<true>)
   {
-    typedef typename dice::hlp::ConstantValue< (TL::INDEX>0) > Continue;
-    typedef typename dice::hlp::ConstantType< MT > MeshTraits;
+    typedef typename dice::hlp::ConstantValue<(TL::INDEX > 0)> Continue;
+    typedef typename dice::hlp::ConstantType<MT> MeshTraits;
     typedef typename TL::Next Next;
     typedef typename TL::Type Type;
-    
-     if (which == Type::name())
-      {
-	Type *ic = new Type(manager,reader,com);
-	return static_cast<IC*>(ic);
-      }
 
-     return createHelper<Next,MT>(which,manager,reader,com,Continue());
-  }  
+    if (which == Type::name())
+    {
+      Type *ic = new Type(manager, reader, com);
+      return static_cast<IC *>(ic);
+    }
 
-  template <class TL>
-  static void getListHelper(std::vector<std::string> &result, 
-			    dice::hlp::ConstantValue<false>)
-  {}
+    return createHelper<Next, MT>(which, manager, reader, com, Continue());
+  }
 
   template <class TL>
-  static void getListHelper(std::vector<std::string> &result, 
-			    dice::hlp::ConstantValue<true>)
+  static void getListHelper(std::vector<std::string> &result,
+                            dice::hlp::ConstantValue<false>)
   {
-    typedef typename dice::hlp::ConstantValue< (TL::INDEX>0) > Continue;
-    
+  }
+
+  template <class TL>
+  static void getListHelper(std::vector<std::string> &result,
+                            dice::hlp::ConstantValue<true>)
+  {
+    typedef typename dice::hlp::ConstantValue<(TL::INDEX > 0)> Continue;
+
     typedef typename TL::Next Next;
     typedef typename TL::Type Type;
-    
+
     result.push_back(Type::name());
 
-    getListHelper<Next>(result,Continue());    
-  }  
+    getListHelper<Next>(result, Continue());
+  }
 };
 
 #endif

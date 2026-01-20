@@ -6,21 +6,23 @@
 
 #include "../../internal/namespace.header"
 
-namespace internal {
+namespace internal
+{
 
-  class ConccurentQueue {
+  class ConccurentQueue
+  {
   public:
-    ConccurentQueue():
-      nextAvail(-1)
-    {}
+    ConccurentQueue() : nextAvail(-1)
+    {
+    }
 
     void clear()
     {
 #pragma omp critical(CQUEUE)
-      {	
-	enroled.clear();
-	std::queue<int> empty;
-	q.swap(empty);
+      {
+        enroled.clear();
+        std::queue<int> empty;
+        q.swap(empty);
       }
     }
 
@@ -28,7 +30,7 @@ namespace internal {
     {
 #pragma omp critical(CQUEUE)
       {
-	enroled.resize(sz,0);
+        enroled.resize(sz, 0);
       }
     }
 
@@ -44,34 +46,38 @@ namespace internal {
 
     bool enrol(int index)
     {
-      if (enroled[index]) return false;
+      if (enroled[index])
+        return false;
 #pragma omp critical(CQUEUE)
-      {	
-	q.push(index);
-	if (q.size()==1) nextAvail=index;
-	enroled[index]=1;
+      {
+        q.push(index);
+        if (q.size() == 1)
+          nextAvail = index;
+        enroled[index] = 1;
       }
       return true;
     }
 
     int availableFor() const
-    {            
-      return nextAvail;      
+    {
+      return nextAvail;
     }
-    
+
     bool done(int index)
     {
-      if (index==nextAvail)
-	{
+      if (index == nextAvail)
+      {
 #pragma omp critical(CQUEUE)
-	  {	    
-	    q.pop();
-	    if (q.size()==0) nextAvail=-1;
-	    else nextAvail=q.front();
-	    enroled[index]=0;
-	  }
-	  return true;
-	}
+        {
+          q.pop();
+          if (q.size() == 0)
+            nextAvail = -1;
+          else
+            nextAvail = q.front();
+          enroled[index] = 0;
+        }
+        return true;
+      }
       return false;
     }
 

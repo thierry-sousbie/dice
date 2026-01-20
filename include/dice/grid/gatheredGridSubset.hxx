@@ -4,7 +4,7 @@
 #include "../dice_globals.hxx"
 
 /**
- * @file 
+ * @file
  * @brief A regular grid shared among MPI processes
  * @author Thierry Sousbie
  */
@@ -21,36 +21,41 @@
  */
 
 template <class CC, class G>
-class GatheredGridSubsetT {
+class GatheredGridSubsetT
+{
 public:
   typedef typename G::Data Data;
   typedef typename CC::Coord Coord;
-  //friend class G;
+  // friend class G;
 
 private:
-  enum Mode {indexed=0, full=1};
-  
+  enum Mode
+  {
+    indexed = 0,
+    full = 1
+  };
+
   explicit GatheredGridSubsetT(long count, int mode[], int nReceive[])
   {
-    this->count=count;
-    indexedStart.assign(count+1,0);
-    fullStart.assign(count+1,0);
-    
-    for (int i=1;i<count+1;++i)
-      {
-	if (mode[i-1]==indexed)
-	  indexedStart[i]=nReceive[i-1];
-	else
-	  fullStart[i]=nReceive[i-1];
+    this->count = count;
+    indexedStart.assign(count + 1, 0);
+    fullStart.assign(count + 1, 0);
 
-	fullStart[i]+=fullStart[i-1];
-	indexedStart[i]+=indexedStart[i-1];
-      }
-    
+    for (int i = 1; i < count + 1; ++i)
+    {
+      if (mode[i - 1] == indexed)
+        indexedStart[i] = nReceive[i - 1];
+      else
+        fullStart[i] = nReceive[i - 1];
+
+      fullStart[i] += fullStart[i - 1];
+      indexedStart[i] += indexedStart[i - 1];
+    }
+
     indexedData.resize(indexedStart.back());
     fullData.resize(fullStart.back());
   }
-  
+
   long count;
   std::vector<Data> indexedData;
   std::vector<Data> fullData;

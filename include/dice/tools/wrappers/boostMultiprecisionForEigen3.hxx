@@ -6,22 +6,24 @@
 #include <boost/multiprecision/number.hpp>
 
 /**
- * @file 
+ * @file
  * @brief This header should be included to enable usage of boost::multiprecision numbers
  * with eigen3 algebra library.
  * @author Thierry Sousbie
  */
 
-namespace Eigen {
+namespace Eigen
+{
 
-  template<class Backend, 
-	   boost::multiprecision::expression_template_option ExpressionTemplates> 
-  struct NumTraits< boost::multiprecision::number<Backend,ExpressionTemplates> >
-    : GenericNumTraits< boost::multiprecision::number<Backend,ExpressionTemplates> >
+  template <class Backend,
+            boost::multiprecision::expression_template_option ExpressionTemplates>
+  struct NumTraits<boost::multiprecision::number<Backend, ExpressionTemplates>>
+      : GenericNumTraits<boost::multiprecision::number<Backend, ExpressionTemplates>>
   {
-    typedef boost::multiprecision::number<Backend,ExpressionTemplates> MyNumberType;
+    typedef boost::multiprecision::number<Backend, ExpressionTemplates> MyNumberType;
 
-    enum {
+    enum
+    {
       IsInteger = 0,
       IsSigned = 1,
       IsComplex = 0,
@@ -33,10 +35,10 @@ namespace Eigen {
 
     typedef MyNumberType Real;
     typedef MyNumberType NonInteger;
-     
+
     // Constants
     /*
-    inline static Real Pi       (long Precision = MyNumberType::default_precision()) 
+    inline static Real Pi       (long Precision = MyNumberType::default_precision())
     {    return mpfr::const_pi(Precision);        }
     inline static Real Euler    (long Precision = MyNumberType::default_precision())
     {    return mpfr::const_euler(Precision);     }
@@ -45,20 +47,25 @@ namespace Eigen {
     inline static Real Catalan  (long Precision = MyNumberType::default_precision())
     {    return mpfr::const_catalan(Precision);   }
     */
-    // inline static Real epsilon  (long Precision = MyNumberType::default_precision()) 
+    // inline static Real epsilon  (long Precision = MyNumberType::default_precision())
     // {    return mpfr::machine_epsilon(Precision); }
-    inline static Real epsilon  (const Real& x)      
-    {    return std::numeric_limits<MyNumberType>::epsilon();}//mpfr::machine_epsilon(x); }
-    inline static Real epsilon  ()      
-    {    return std::numeric_limits<MyNumberType>::epsilon();}
-
-    inline static Real dummy_precision()   
+    inline static Real epsilon(const Real &x)
     {
-      return epsilon()*1.E4;      
+      return std::numeric_limits<MyNumberType>::epsilon();
+    } // mpfr::machine_epsilon(x); }
+    inline static Real epsilon()
+    {
+      return std::numeric_limits<MyNumberType>::epsilon();
+    }
+
+    inline static Real dummy_precision()
+    {
+      return epsilon() * 1.E4;
     }
   };
 
-  namespace internal {
+  namespace internal
+  {
     /*
     template<> inline mpfr::mpreal random<mpfr::mpreal>()
     {
@@ -69,7 +76,7 @@ namespace Eigen {
     {
       return a + (b-a) * random<mpfr::mpreal>();
     }
-    
+
     inline bool isMuchSmallerThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& eps)
     {
       return mpfr::abs(a) <= mpfr::abs(b) * eps;
@@ -87,15 +94,15 @@ namespace Eigen {
     */
 
     /*
-    template <class Backend, 
-	      boost::multiprecision::expression_template_option ExpressionTemplates,
-	      class T> 
+    template <class Backend,
+        boost::multiprecision::expression_template_option ExpressionTemplates,
+        class T>
     inline T cast< boost::multiprecision::number<Backend,ExpressionTemplates>,T>
     (const boost::multiprecision::number<Backend,ExpressionTemplates>& x)
     {
       return x.template convert_to<T>();
     }
-    */		
+    */
     /*
     template<> inline long double cast<mpfr::mpreal,long double>(const mpfr::mpreal& x)
     { return x.toLDouble(); }
@@ -138,33 +145,33 @@ namespace Eigen {
       {
         if(rows==0 || cols==0 || depth==0)
           return;
-        
+
         mpreal  acc1(0,mpfr_get_prec(blockA[0].mpfr_srcptr())),
-	  tmp (0,mpfr_get_prec(blockA[0].mpfr_srcptr()));
-        
+    tmp (0,mpfr_get_prec(blockA[0].mpfr_srcptr()));
+
         if(strideA==-1) strideA = depth;
         if(strideB==-1) strideB = depth;
 
         for(Index i=0; i<rows; ++i)
-	  {
-	    for(Index j=0; j<cols; ++j)
-	      {
-		mpreal *C1 = res + j*resStride;
-            
-		const mpreal *A = blockA + i*strideA + offsetA;
-		const mpreal *B = blockB + j*strideB + offsetB;
-            
-		acc1 = 0;
-		for(Index k=0; k<depth; k++)
-		  {
-		    mpfr_mul(tmp.mpfr_ptr(), A[k].mpfr_srcptr(), B[k].mpfr_srcptr(), mpreal::get_default_rnd());
-		    mpfr_add(acc1.mpfr_ptr(), acc1.mpfr_ptr(), tmp.mpfr_ptr(),  mpreal::get_default_rnd());
-		  }
-            
-		mpfr_mul(acc1.mpfr_ptr(), acc1.mpfr_srcptr(), alpha.mpfr_srcptr(), mpreal::get_default_rnd());
-		mpfr_add(C1[i].mpfr_ptr(), C1[i].mpfr_srcptr(), acc1.mpfr_srcptr(),  mpreal::get_default_rnd());
-	      }
-	  }
+    {
+      for(Index j=0; j<cols; ++j)
+        {
+    mpreal *C1 = res + j*resStride;
+
+    const mpreal *A = blockA + i*strideA + offsetA;
+    const mpreal *B = blockB + j*strideB + offsetB;
+
+    acc1 = 0;
+    for(Index k=0; k<depth; k++)
+      {
+        mpfr_mul(tmp.mpfr_ptr(), A[k].mpfr_srcptr(), B[k].mpfr_srcptr(), mpreal::get_default_rnd());
+        mpfr_add(acc1.mpfr_ptr(), acc1.mpfr_ptr(), tmp.mpfr_ptr(),  mpreal::get_default_rnd());
+      }
+
+    mpfr_mul(acc1.mpfr_ptr(), acc1.mpfr_srcptr(), alpha.mpfr_srcptr(), mpreal::get_default_rnd());
+    mpfr_add(C1[i].mpfr_ptr(), C1[i].mpfr_srcptr(), acc1.mpfr_srcptr(),  mpreal::get_default_rnd());
+        }
+    }
       }
     };
     */

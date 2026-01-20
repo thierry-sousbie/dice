@@ -4,20 +4,23 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string>
 
 #include "../../internal/namespace.header"
 
-namespace myIO {  
+namespace myIO
+{
 
-  inline bool exists(const char *name) 
+  inline bool exists(const char *name)
   {
-    FILE *file= fopen(name, "r");
-    if (file) 
-      {
-	fclose(file);
-	return true;
-      } 
-    else return false;
+    FILE *file = fopen(name, "r");
+    if (file)
+    {
+      fclose(file);
+      return true;
+    }
+    else
+      return false;
   }
 
   inline bool exists(const std::string &name)
@@ -25,9 +28,9 @@ namespace myIO {
     return exists(name.c_str());
   }
 
-  inline int rmFile(const char *name) 
+  inline int rmFile(const char *name)
   {
-    return remove(name);  
+    return remove(name);
   }
 
   inline int rmFile(const std::string &name)
@@ -37,45 +40,45 @@ namespace myIO {
 
   int makeDir(const char *name)
   {
-    return mkdir(name, S_IRWXU|S_IRWXG);
+    return mkdir(name, S_IRWXU | S_IRWXG);
   }
 
   int makeDir(const std::string &name)
   {
     return makeDir(name.c_str());
   }
-  
+
   // prototype of generic functions for swapping
   int swapI(int);
   float swapF(float);
   double swapD(double);
-  void Dswap2B(void*);
-  void Dswap4B(void*);
-  void Dswap8B(void*);
-  void Dswap2BArr(void*,size_t);
-  void Dswap4BArr(void*,size_t);
-  void Dswap8BArr(void*,size_t);
-    
+  void Dswap2B(void *);
+  void Dswap4B(void *);
+  void Dswap8B(void *);
+  void Dswap2BArr(void *, size_t);
+  void Dswap4BArr(void *, size_t);
+  void Dswap8BArr(void *, size_t);
+
   // read/write helpers
-  size_t fread(void *data,size_t size,size_t nb,FILE *f,int swap);
+  size_t fread(void *data, size_t size, size_t nb, FILE *f, int swap);
 
   template <class S>
   size_t writeEnum(FILE *f, typename S::type val)
   {
-    int tmpi=(int)val;
-    return fwrite(&tmpi,sizeof(int),1,f);
+    int tmpi = (int)val;
+    return fwrite(&tmpi, sizeof(int), 1, f);
   }
 
   template <class S>
   typename S::type readEnum(FILE *f, int swap)
   {
-    size_t s;
+    // size_t s;
     int tmpi;
-    s=fread(&tmpi,sizeof(int),1,f,swap);
-    return (typename S::type) tmpi;
+    fread(&tmpi, sizeof(int), 1, f, swap);
+    return (typename S::type)tmpi;
   }
   /*
-    std::string genFname(const std::string &fname,const std::string &ext, 
+    std::string genFname(const std::string &fname,const std::string &ext,
     long rank, long size)
     {
     char res[1024];
@@ -88,7 +91,6 @@ namespace myIO {
     }
   */
 
-
   /*
     int writeTag(FILE *f, const std::string &str, int size=-1)
     {
@@ -99,14 +101,14 @@ namespace myIO {
     fwrite(&size,sizeof(int),1,f);
     return fwrite(tag,sizeof(char),size,f);
     }
-    
+
     size_t checkTag(FILE *f, const std::string &ref)
-    {    
+    {
     size_t size=ref.length();
     char tag[size];
     int rs=-1;
     size_t ret = fread(&rs,sizeof(int),1,f);
-    
+
     if ((static_cast<long>(size)!=rs)&&((static_cast<long>(size)!=swapI(rs))))
     {
     fprintf(stderr,"\nERROR reading file: tag '%s' do not match (size)!!!\n",ref.c_str());
@@ -116,38 +118,44 @@ namespace myIO {
 
     ret += fread(tag,sizeof(char),size,f);
 
-    for (unsigned long i=0;i<ref.length();i++) 
+    for (unsigned long i=0;i<ref.length();i++)
     {
-    if (tag[i]!=ref[i]) 
+    if (tag[i]!=ref[i])
     {
     fprintf(stderr,"\nERROR reding file: tags '%s' do not match !!!\n",ref.c_str());
     fclose(f);
     exit(-1);
     }
-    }    
+    }
 
     return ret;
     //fprintf(stderr,"tag '%s' is found!!!\n",ref.c_str());
     }
   */
-  size_t fread(void *data,size_t size,size_t nb,FILE *f,int swap)
+  size_t fread(void *data, size_t size, size_t nb, FILE *f, int swap)
   {
-  
-    size_t ret = fread(data,size,nb,f);
-  
+
+    size_t ret = fread(data, size, nb, f);
+
     if (swap)
+    {
+      switch (size)
       {
-	switch (size)
-	  {
-	  case 8: Dswap8BArr(data,nb);break;
-	  case 4: Dswap4BArr(data,nb);break;
-	  case 2: Dswap2BArr(data,nb);break;
-	  }
+      case 8:
+        Dswap8BArr(data, nb);
+        break;
+      case 4:
+        Dswap4BArr(data, nb);
+        break;
+      case 2:
+        Dswap2BArr(data, nb);
+        break;
       }
-  
+    }
+
     return ret;
   }
-  
+
   /*
   size_t fwrite_dummy(size_t size, size_t nmemb,FILE *stream)
   {
@@ -155,360 +163,378 @@ namespace myIO {
     unsigned long bsize=FWRITE_DUMMY_BFR_SIZE/size;
     unsigned long nleft=nmemb;
     size_t ret=0;
-    
+
     while(nleft>0)
       {
-	unsigned long nw=(nleft<bsize)?nleft:bsize;
-	ret+=fwrite(buffer,size,nw,stream);
-	nleft-=nw;
+  unsigned long nw=(nleft<bsize)?nleft:bsize;
+  ret+=fwrite(buffer,size,nw,stream);
+  nleft-=nw;
       };
 
     return ret;
   }
   */
-  
-  int fread_ului(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int swap)
+
+  int fread_ului(void *data, size_t sizeOut, size_t nb, size_t sizeIn, FILE *f, int swap)
   {
     int ret;
-    if (sizeIn==sizeOut)
-      return fread(data,sizeIn,nb,f,swap);
-    else if (sizeIn<sizeOut)
-      {
-	long i;
-	ret=fread(data,sizeIn,nb,f,swap);
-	unsigned long int *uo = (unsigned long int *)(data);
-	unsigned int *ui = (unsigned int *)(data);
-      
-	for (i=nb-1;i>=0;i--)
-	  uo[i]=(unsigned long int) ui[i];
-      }
+    if (sizeIn == sizeOut)
+      return fread(data, sizeIn, nb, f, swap);
+    else if (sizeIn < sizeOut)
+    {
+      long i;
+      ret = fread(data, sizeIn, nb, f, swap);
+      unsigned long int *uo = (unsigned long int *)(data);
+      unsigned int *ui = (unsigned int *)(data);
+
+      for (i = nb - 1; i >= 0; i--)
+        uo[i] = (unsigned long int)ui[i];
+    }
     else
-      {      
-	if (nb==1)
-	  {
-	    unsigned long int in;
-	    unsigned int *uo = (unsigned int *)(data);
-	    ret=fread(&in,sizeIn,nb,f,swap);
-	    (*uo)= (unsigned int) in;
-	    return ret;
-	  }
-	unsigned long i;
-	data=realloc(data,sizeIn*nb);
-	ret=fread(data,sizeIn,nb,f,swap);
-	unsigned long int *ui = (unsigned long int *)(data);
-	unsigned int *uo = (unsigned int *)(data);
-	//assert(0);
-	for (i=0;i<nb;i++)
-	  uo[i]=(unsigned int) ui[i];
-	
-	data=realloc(data,sizeOut*nb);
-	//assert(0);
+    {
+      if (nb == 1)
+      {
+        unsigned long int in;
+        unsigned int *uo = (unsigned int *)(data);
+        ret = fread(&in, sizeIn, nb, f, swap);
+        (*uo) = (unsigned int)in;
+        return ret;
       }
+      unsigned long i;
+      data = realloc(data, sizeIn * nb);
+      ret = fread(data, sizeIn, nb, f, swap);
+      unsigned long int *ui = (unsigned long int *)(data);
+      unsigned int *uo = (unsigned int *)(data);
+      // assert(0);
+      for (i = 0; i < nb; i++)
+        uo[i] = (unsigned int)ui[i];
+
+      data = realloc(data, sizeOut * nb);
+      // assert(0);
+    }
     return ret;
   }
 
-  void* fread_fd(void *data,size_t sizeOut,size_t nb,size_t sizeIn,FILE *f,int swap)
+  void *fread_fd(void *data, size_t sizeOut, size_t nb, size_t sizeIn, FILE *f, int swap)
   {
-    //int ret;  
-    if (sizeIn==sizeOut)
-      {
-	fread(data,sizeIn,nb,f,swap);
-	return data;
-      }
-    else if (sizeIn<sizeOut)
-      {
-	long i;
-	fread(data,sizeIn,nb,f,swap);
-	double *uo = (double *)(data);
-	float *ui = (float *)(data);
-      
-	for (i=nb-1;i>=0;i--)
-	  uo[i]=(double) ui[i];
-      }
+    // int ret;
+    if (sizeIn == sizeOut)
+    {
+      fread(data, sizeIn, nb, f, swap);
+      return data;
+    }
+    else if (sizeIn < sizeOut)
+    {
+      long i;
+      fread(data, sizeIn, nb, f, swap);
+      double *uo = (double *)(data);
+      float *ui = (float *)(data);
+
+      for (i = nb - 1; i >= 0; i--)
+        uo[i] = (double)ui[i];
+    }
     else
-      {      
-	if (nb==1)
-	  {
-	    double in;
-	    float *uo = (float *)(data);
-	    fread(&in,sizeIn,nb,f,swap);
-	    (*uo)= (float) in;
-	    return data;
-	  }
-	unsigned long i;
-	data=realloc(data,sizeIn*nb);
-      
-	fread(data,sizeIn,nb,f,swap);
-	double *ui = (double *)(data);
-	float *uo = (float *)(data);
-	//assert(0);
-	for (i=0;i<nb;i++)
-	  uo[i]=(float) ui[i];
-	
-	data=realloc(data,sizeOut*nb);
-      
-	//assert(0);
-      } 
+    {
+      if (nb == 1)
+      {
+        double in;
+        float *uo = (float *)(data);
+        fread(&in, sizeIn, nb, f, swap);
+        (*uo) = (float)in;
+        return data;
+      }
+      unsigned long i;
+      data = realloc(data, sizeIn * nb);
+
+      fread(data, sizeIn, nb, f, swap);
+      double *ui = (double *)(data);
+      float *uo = (float *)(data);
+      // assert(0);
+      for (i = 0; i < nb; i++)
+        uo[i] = (float)ui[i];
+
+      data = realloc(data, sizeOut * nb);
+
+      // assert(0);
+    }
     return data;
   }
-
 
   size_t freadBE(void *ptr, size_t size, size_t nmemb, FILE *stream)
   {
     size_t res;
-    static int isLittle=-1;  
-    if (isLittle<0)
-      {
-	int i=1;
-	unsigned char *ic=(unsigned char*)&i;
-	if (*ic) isLittle=1;
-	else isLittle=0;
-      }
+    static int isLittle = -1;
+    if (isLittle < 0)
+    {
+      int i = 1;
+      unsigned char *ic = (unsigned char *)&i;
+      if (*ic)
+        isLittle = 1;
+      else
+        isLittle = 0;
+    }
 
-    res=fread(ptr,size,nmemb,stream);
-    if ((isLittle)&&(size>1))
-      {	
-	unsigned char a[16];
-	unsigned char *cptr=(unsigned char*)ptr;
-	for (size_t i=0;i<nmemb*size;i+=size)
-	  {
-	    for (size_t j=0;j<size;j++) a[size-j-1]=cptr[i+j];
-	    for (size_t j=0;j<size;j++) cptr[i+j]=a[j];
-	  }
+    res = fread(ptr, size, nmemb, stream);
+    if ((isLittle) && (size > 1))
+    {
+      unsigned char a[16];
+      unsigned char *cptr = (unsigned char *)ptr;
+      for (size_t i = 0; i < nmemb * size; i += size)
+      {
+        for (size_t j = 0; j < size; j++)
+          a[size - j - 1] = cptr[i + j];
+        for (size_t j = 0; j < size; j++)
+          cptr[i + j] = a[j];
       }
+    }
     return res;
   }
 
-  size_t fwriteBE(void *ptr, size_t size, size_t nmemb,FILE *stream)
+  size_t fwriteBE(void *ptr, size_t size, size_t nmemb, FILE *stream)
   {
     size_t res;
-    static int isLittle=-1;  
-    if (isLittle<0)
+    static int isLittle = -1;
+    if (isLittle < 0)
+    {
+      int i = 1;
+      unsigned char *ic = (unsigned char *)&i;
+      if (*ic)
+        isLittle = 1;
+      else
+        isLittle = 0;
+    }
+
+    if ((isLittle) && (size > 1))
+    {
+      unsigned char a[16];
+      unsigned char *cptr = (unsigned char *)ptr;
+      for (size_t i = 0; i < nmemb * size; i += size)
       {
-	int i=1;
-	unsigned char *ic=(unsigned char*)&i;
-	if (*ic) isLittle=1;
-	else isLittle=0;
+        for (size_t j = 0; j < size; j++)
+          a[size - j - 1] = cptr[i + j];
+        for (size_t j = 0; j < size; j++)
+          cptr[i + j] = a[j];
       }
+    }
 
-    if ((isLittle)&&(size>1))
-      {	
-	unsigned char a[16];
-	unsigned char *cptr=(unsigned char*)ptr;
-	for (size_t i=0;i<nmemb*size;i+=size)
-	  {
-	    for (size_t j=0;j<size;j++) a[size-j-1]=cptr[i+j];
-	    for (size_t j=0;j<size;j++) cptr[i+j]=a[j];
-	  }
-      }
+    res = fwrite(ptr, size, nmemb, stream);
 
-    res=fwrite(ptr,size,nmemb,stream);
-
-    if ((isLittle)&&(size>1))
+    if ((isLittle) && (size > 1))
+    {
+      unsigned char a[16];
+      unsigned char *cptr = (unsigned char *)ptr;
+      for (size_t i = 0; i < nmemb * size; i += size)
       {
-	unsigned char a[16];
-	unsigned char *cptr=(unsigned char*)ptr;
-	for (size_t i=0;i<nmemb*size;i+=size)
-	  {
-	    for (size_t j=0;j<size;j++) a[size-j-1]=cptr[i+j];
-	    for (size_t j=0;j<size;j++) cptr[i+j]=a[j];
-	  }
+        for (size_t j = 0; j < size; j++)
+          a[size - j - 1] = cptr[i + j];
+        for (size_t j = 0; j < size; j++)
+          cptr[i + j] = a[j];
       }
+    }
     return res;
   }
 
   int swapI(int val)
   {
     int out;
-    const char *i=(const char *)&val;
-    char *o=(char *)&out;
+    const char *i = (const char *)&val;
+    char *o = (char *)&out;
 
-    o[3]=i[0];
-    o[2]=i[1];
-    o[1]=i[2];
-    o[0]=i[3];
+    o[3] = i[0];
+    o[2] = i[1];
+    o[1] = i[2];
+    o[0] = i[3];
 
-    return out; 
+    return out;
   }
 
   float swapF(float val)
   {
     float out;
-    const char *i=(const char *)&val;
-    char *o=(char *)&out;
+    const char *i = (const char *)&val;
+    char *o = (char *)&out;
 
-    o[3]=i[0];
-    o[2]=i[1];
-    o[1]=i[2];
-    o[0]=i[3];
+    o[3] = i[0];
+    o[2] = i[1];
+    o[1] = i[2];
+    o[0] = i[3];
 
-    return out; 
+    return out;
   }
 
   double swapD(double val)
   {
     double out;
-    const char *i=(const char *)&val;
-    char *o=(char *)&out;
+    const char *i = (const char *)&val;
+    char *o = (char *)&out;
 
-    o[7]=i[0];
-    o[6]=i[1];
-    o[5]=i[2];
-    o[4]=i[3];
-    o[3]=i[4];
-    o[2]=i[5];
-    o[1]=i[6];
-    o[0]=i[7];
+    o[7] = i[0];
+    o[6] = i[1];
+    o[5] = i[2];
+    o[4] = i[3];
+    o[3] = i[4];
+    o[2] = i[5];
+    o[1] = i[6];
+    o[0] = i[7];
 
-
-    return out; 
+    return out;
   }
 
   inline void Dswap2B(void *val)
   {
-    char *c=(char *)val;
+    char *c = (char *)val;
     char a;
-    
-    a=c[0];c[0]=c[1];c[1]=a; 
+
+    a = c[0];
+    c[0] = c[1];
+    c[1] = a;
   }
 
   inline void Dswap4B(void *val)
   {
-    char *c=(char *)val;
+    char *c = (char *)val;
     char a;
-    
-    a=c[0];c[0]=c[3];c[3]=a;
-    a=c[1];c[1]=c[2];c[2]=a; 
- 
+
+    a = c[0];
+    c[0] = c[3];
+    c[3] = a;
+    a = c[1];
+    c[1] = c[2];
+    c[2] = a;
   }
 
   inline void Dswap8B(void *val)
   {
-    char *c=(char *)val;
-    char a;
-    
-    a=c[0];c[0]=c[7];c[7]=a;
-    a=c[1];c[1]=c[6];c[6]=a;
-    a=c[2];c[2]=c[5];c[5]=a;
-    a=c[3];c[3]=c[4];c[4]=a;
-  }
-
-  void Dswap2BArr(void *val,size_t n)
-  {
-    size_t i;
+    char *c = (char *)val;
     char a;
 
-    char *c=(char *)val;
-
-    for (i=0;i<2*n;i+=2)
-      {
-	a=c[i];
-	c[i]=c[i+1];
-	c[i+1]=a;
-      }
-
+    a = c[0];
+    c[0] = c[7];
+    c[7] = a;
+    a = c[1];
+    c[1] = c[6];
+    c[6] = a;
+    a = c[2];
+    c[2] = c[5];
+    c[5] = a;
+    a = c[3];
+    c[3] = c[4];
+    c[4] = a;
   }
 
-  void Dswap4BArr(void *val,size_t n)
+  void Dswap2BArr(void *val, size_t n)
   {
     size_t i;
-    char a,b;
+    char a;
 
-    char *c=(char *)val;
+    char *c = (char *)val;
 
-    for (i=0;i<4*n;i+=4)
-      {
-	a=c[i];
-	b=c[i+1];
-	c[i]=c[i+3];
-	c[i+1]=c[i+2];
-	c[i+2]=b;
-	c[i+3]=a;
-      }
-
+    for (i = 0; i < 2 * n; i += 2)
+    {
+      a = c[i];
+      c[i] = c[i + 1];
+      c[i + 1] = a;
+    }
   }
 
-  void Dswap8BArr(void *val,size_t n)
+  void Dswap4BArr(void *val, size_t n)
   {
     size_t i;
-    char a,b,u,v;
+    char a, b;
 
-    char *c=(char *)val;
+    char *c = (char *)val;
 
-    for (i=0;i<8*n;i+=8)
-      {
-	a=c[i];
-	b=c[i+1];
-	u=c[i+2];
-	v=c[i+3];
-	c[i]=c[i+7];
-	c[i+1]=c[i+6];
-	c[i+2]=c[i+5];
-	c[i+3]=c[i+4];
-	c[i+4]=v;
-	c[i+5]=u;
-	c[i+6]=b;
-	c[i+7]=a;
-      }
+    for (i = 0; i < 4 * n; i += 4)
+    {
+      a = c[i];
+      b = c[i + 1];
+      c[i] = c[i + 3];
+      c[i + 1] = c[i + 2];
+      c[i + 2] = b;
+      c[i + 3] = a;
+    }
+  }
+
+  void Dswap8BArr(void *val, size_t n)
+  {
+    size_t i;
+    char a, b, u, v;
+
+    char *c = (char *)val;
+
+    for (i = 0; i < 8 * n; i += 8)
+    {
+      a = c[i];
+      b = c[i + 1];
+      u = c[i + 2];
+      v = c[i + 3];
+      c[i] = c[i + 7];
+      c[i + 1] = c[i + 6];
+      c[i + 2] = c[i + 5];
+      c[i + 3] = c[i + 4];
+      c[i + 4] = v;
+      c[i + 5] = u;
+      c[i + 6] = b;
+      c[i + 7] = a;
+    }
   }
 
   ssize_t
-  getDelim (char **lineptr, int *n, int delim, FILE *stream)
+  getDelim(char **lineptr, int *n, int delim, FILE *stream)
   {
-    static const int line_size=1024; // Default value for line length.
+    static const int line_size = 1024; // Default value for line length.
     int indx = 0;
     int c;
-        
+
     /* Sanity checks.  */
     if (lineptr == NULL || n == NULL || stream == NULL)
       return -1;
 
     /* Allocate the line the first time.  */
     if (*lineptr == NULL)
-      {
-	*lineptr = (char *)malloc (line_size);
-	if (*lineptr == NULL)
-	  return -1;
-	*n = line_size;
-      }
+    {
+      *lineptr = (char *)malloc(line_size);
+      if (*lineptr == NULL)
+        return -1;
+      *n = line_size;
+    }
 
     /* Clear the line.  */
-    memset (*lineptr, '\0', *n);
+    memset(*lineptr, '\0', *n);
 
-    while ((c = getc (stream)) != EOF)
+    while ((c = getc(stream)) != EOF)
+    {
+      /* Check if more memory is needed.  */
+      if (indx >= *n)
       {
-	/* Check if more memory is needed.  */
-	if (indx >= *n)
-	  {
-	    *lineptr = (char *)realloc (*lineptr, *n + line_size);
-	    if (*lineptr == NULL)
-	      {
-		return -1;
-	      }
-	    /* Clear the rest of the line.  */
-	    memset(*lineptr + *n, '\0', line_size);
-	    *n += line_size;
-	  }
-
-	/* Push the result in the line.  */
-	(*lineptr)[indx++] = c;
-
-	/* Bail out.  */
-	if (c == delim)
-	  {
-	    break;
-	  }
+        *lineptr = (char *)realloc(*lineptr, *n + line_size);
+        if (*lineptr == NULL)
+        {
+          return -1;
+        }
+        /* Clear the rest of the line.  */
+        memset(*lineptr + *n, '\0', line_size);
+        *n += line_size;
       }
+
+      /* Push the result in the line.  */
+      (*lineptr)[indx++] = c;
+
+      /* Bail out.  */
+      if (c == delim)
+      {
+        break;
+      }
+    }
     return (c == EOF) ? -1 : indx;
   }
 
-  ssize_t getLine (char **lineptr, int *n, FILE *stream)
+  ssize_t getLine(char **lineptr, int *n, FILE *stream)
   {
-    return getDelim (lineptr, n, '\n', stream);
+    return getDelim(lineptr, n, '\n', stream);
   }
-  
+
 } // myIO
 
 #include "../../internal/namespace.footer"
 #endif
-

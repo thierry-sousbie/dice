@@ -2,7 +2,7 @@
 #define __FINITE_ELEMENT_TYPE_ENUM_HXX__
 
 /**
- * @file 
+ * @file
  * @brief  Define an enum for finite elements  types
  * @author Thierry Sousbie
  */
@@ -14,10 +14,12 @@
  */
 
 //! protects the definition of finite element type as an enum
-namespace fETypeE {
+namespace fETypeE
+{
   /// defines different types of finite element
-  enum Type {
-    simplex, 
+  enum Type
+  {
+    simplex,
     cuboid
   };
 }

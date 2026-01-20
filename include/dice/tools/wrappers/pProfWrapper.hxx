@@ -4,15 +4,30 @@
 #ifdef USE_PPROF
 #include "google/profiler.h"
 
-#define PPROF_START_DEFAULT {ProfilerStart("/home/thierry/pprof/vps.prof");}
-#define PPROF_START(x) {ProfilerStart( x );}
-#define PPROF_STOP {ProfilerStop();}
+#define PPROF_START_DEFAULT                            \
+    {                                                  \
+        ProfilerStart("/home/thierry/pprof/vps.prof"); \
+    }
+#define PPROF_START(x)    \
+    {                     \
+        ProfilerStart(x); \
+    }
+#define PPROF_STOP      \
+    {                   \
+        ProfilerStop(); \
+    }
 
 #else
 
-#define PPROF_START_DEFAULT {}
-#define PPROF_START(x) {}
-#define PPROF_STOP {}
+#define PPROF_START_DEFAULT \
+    {                       \
+    }
+#define PPROF_START(x) \
+    {                  \
+    }
+#define PPROF_STOP \
+    {              \
+    }
 
 #endif
 

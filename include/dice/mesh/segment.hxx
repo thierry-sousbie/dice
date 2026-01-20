@@ -7,7 +7,7 @@
 #include "../mesh/simplex.hxx"
 
 /**
- * @file 
+ * @file
  * @brief Defines a segment class to be used with MeshT
  * @author Thierry Sousbie
  */
@@ -18,15 +18,19 @@
  *   \{
  */
 
-template <class T> class VertexT;
-template <class T> class SimplexT;
-template <class T> class LocalMeshT;
-template <class T> class MeshT;
+template <class T>
+class VertexT;
+template <class T>
+class SimplexT;
+template <class T>
+class LocalMeshT;
+template <class T>
+class MeshT;
 
-#define SEGMENT_FLAG_NOTSET   (1<<0)
-#define SEGMENT_FLAG_ALERT (1<<7)
-//#define SEGMENT_FLAG_SHARED   (1<<1)
-//#define SEGMENT_FLAG_BOUNDARY (1<<2)
+#define SEGMENT_FLAG_NOTSET (1 << 0)
+#define SEGMENT_FLAG_ALERT (1 << 7)
+// #define SEGMENT_FLAG_SHARED   (1<<1)
+// #define SEGMENT_FLAG_BOUNDARY (1<<2)
 
 /**
  * \class SegmentT
@@ -34,7 +38,7 @@ template <class T> class MeshT;
  */
 
 template <class T>
-class SegmentT 
+class SegmentT
 {
 public:
   friend class LocalMeshT<T>;
@@ -47,10 +51,10 @@ public:
   static const long NVERT = 2;
 
   typedef typename T::SegmentFlag Flag;
-  
+
   typedef SegmentT<T> MyType;
-  typedef T Traits;  
-  
+  typedef T Traits;
+
   typedef SimplexT<T> Simplex;
   typedef SegmentT<T> Segment;
   typedef VertexT<T> Vertex;
@@ -65,31 +69,30 @@ public:
 
   typedef typename Simplex::segment_circulator circulator;
   typedef typename Simplex::const_segment_circulator const_circulator;
-  
-  SegmentT():flags(SEGMENT_FLAG_NOTSET)
+
+  SegmentT() : flags(SEGMENT_FLAG_NOTSET)
   {
-    vertices[0]=vertices[1]=NULL;
-    simplex=NULL;
-  }
-  
-  SegmentT(Vertex *v[2], Simplex *s=NULL):flags(SEGMENT_FLAG_NOTSET)
-  {
-    set(v,s);     
-  }
-  
-  SegmentT(Vertex *v0, Vertex *v1, Simplex *s=NULL):flags(SEGMENT_FLAG_NOTSET)
-  {
-    set(v0,v1,s);     
+    vertices[0] = vertices[1] = NULL;
+    simplex = NULL;
   }
 
-  
+  SegmentT(Vertex *v[2], Simplex *s = NULL) : flags(SEGMENT_FLAG_NOTSET)
+  {
+    set(v, s);
+  }
+
+  SegmentT(Vertex *v0, Vertex *v1, Simplex *s = NULL) : flags(SEGMENT_FLAG_NOTSET)
+  {
+    set(v0, v1, s);
+  }
+
   long getGeneration() const
   {
-    return 1+std::max(vertices[0]->getGeneration().rank(),
-		      vertices[1]->getGeneration().rank());
+    return 1 + std::max(vertices[0]->getGeneration().rank(),
+                        vertices[1]->getGeneration().rank());
   }
 
-  //static int getType() {return 1;}
+  // static int getType() {return 1;}
 
   Simplex *getSimplex() const
   {
@@ -98,14 +101,16 @@ public:
 
   Vertex *getOtherVertex(Vertex *v) const
   {
-    if (v==vertices[0]) return vertices[1];
-    if (v==vertices[1]) return vertices[0];
+    if (v == vertices[0])
+      return vertices[1];
+    if (v == vertices[1])
+      return vertices[0];
     return NULL;
   }
 
   Vertex *getLowVertex() const
   {
-    if ((*vertices[0])<(*vertices[1]))
+    if ((*vertices[0]) < (*vertices[1]))
       return vertices[0];
     else
       return vertices[1];
@@ -113,23 +118,23 @@ public:
 
   Vertex *getHighVertex() const
   {
-    if ((*vertices[1])<(*vertices[0]))
+    if ((*vertices[1]) < (*vertices[0]))
       return vertices[0];
     else
       return vertices[1];
   }
 
-  std::pair<Vertex *,Vertex *> getOrderedVertices() const
+  std::pair<Vertex *, Vertex *> getOrderedVertices() const
   {
-    if ((*vertices[0])<(*vertices[1]))
-      return std::make_pair(vertices[0],vertices[1]);
+    if ((*vertices[0]) < (*vertices[1]))
+      return std::make_pair(vertices[0], vertices[1]);
     else
-      return std::make_pair(vertices[1],vertices[0]);
+      return std::make_pair(vertices[1], vertices[0]);
   }
 
   Vertex *getVertex(int which, bool reverse) const
   {
-    return (reverse)?vertices[1-which]:vertices[which];
+    return (reverse) ? vertices[1 - which] : vertices[which];
   }
 
   Vertex *getVertex(int which) const
@@ -137,108 +142,114 @@ public:
     return vertices[which];
   }
 
-  Vertex* getVertexByGlobalId(GlobalIdentity vid) const
+  Vertex *getVertexByGlobalId(GlobalIdentity vid) const
   {
-    if (vertices[0]->getGlobalIdentity()==vid)
+    if (vertices[0]->getGlobalIdentity() == vid)
       return vertices[0];
-    if (vertices[1]->getGlobalIdentity()==vid)
+    if (vertices[1]->getGlobalIdentity() == vid)
       return vertices[1];
     return NULL;
   }
 
-  Vertex* getVertexByLocalIndex(LocalIndex vid) const
+  Vertex *getVertexByLocalIndex(LocalIndex vid) const
   {
-    if (vertices[0]->getLocalIndex()==vid)
+    if (vertices[0]->getLocalIndex() == vid)
       return vertices[0];
-    if (vertices[1]->getLocalIndex()==vid)
+    if (vertices[1]->getLocalIndex() == vid)
       return vertices[1];
     return NULL;
   }
 
   template <class OutputIterator>
-  void getVertices(OutputIterator out, bool reverse)  const
+  void getVertices(OutputIterator out, bool reverse) const
   {
     if (reverse)
-      {
-	*out=vertices[1];++out;
-	*out=vertices[0];
-      }
+    {
+      *out = vertices[1];
+      ++out;
+      *out = vertices[0];
+    }
     else
-      {
-	*out=vertices[0];++out;
-	*out=vertices[1];
-      }
+    {
+      *out = vertices[0];
+      ++out;
+      *out = vertices[1];
+    }
   }
 
   template <class OutputIterator>
-  void getVertices(OutputIterator out)  const
+  void getVertices(OutputIterator out) const
   {
-    *out=vertices[0];++out;
-    *out=vertices[1];
+    *out = vertices[0];
+    ++out;
+    *out = vertices[1];
   }
 
   template <class OutputIterator>
-  void getVerticesLocalIndex(OutputIterator out, bool reverse)  const
+  void getVerticesLocalIndex(OutputIterator out, bool reverse) const
   {
     if (reverse)
-      {
-	*out=vertices[1]->getLocalIndex();++out;
-	*out=vertices[0]->getLocalIndex();
-      }
+    {
+      *out = vertices[1]->getLocalIndex();
+      ++out;
+      *out = vertices[0]->getLocalIndex();
+    }
     else
-      {
-	*out=vertices[0]->getLocalIndex();++out;
-	*out=vertices[1]->getLocalIndex();
-      }
+    {
+      *out = vertices[0]->getLocalIndex();
+      ++out;
+      *out = vertices[1]->getLocalIndex();
+    }
   }
 
   template <class OutputIterator>
-  void getVerticesLocalIndex(OutputIterator out)  const
+  void getVerticesLocalIndex(OutputIterator out) const
   {
-    *out=vertices[0]->getLocalIndex();++out;
-    *out=vertices[1]->getLocalIndex();
+    *out = vertices[0]->getLocalIndex();
+    ++out;
+    *out = vertices[1]->getLocalIndex();
   }
 
   circulator getCirculator() const
   {
-    //Handle handle(this);
-    return circulator(Handle(this),simplex);    
+    // Handle handle(this);
+    return circulator(Handle(this), simplex);
   }
 
   circulator getCirculator(Vertex *v) const
   {
-    //Handle handle(this);
-    return circulator(Handle(this),v,simplex);    
+    // Handle handle(this);
+    return circulator(Handle(this), v, simplex);
   }
-  
+
   const_circulator getConstCirculator() const
   {
-    //Handle handle(this);
-    return const_circulator(Handle(this),simplex);       
+    // Handle handle(this);
+    return const_circulator(Handle(this), simplex);
   }
 
   const_circulator getConstCirculator(Vertex *v) const
   {
-    //Handle handle(this);
-    return const_circulator(Handle(this),v,simplex);       
+    // Handle handle(this);
+    return const_circulator(Handle(this), v, simplex);
   }
 
   template <class OutputIterator>
   int getAdjacentSimplices(OutputIterator out)
   {
-    circulator ci_end=circulator(Handle(this),simplex);
-    circulator ci=ci_end;
-    int j=0;
+    circulator ci_end = circulator(Handle(this), simplex);
+    circulator ci = ci_end;
+    int j = 0;
     do
-      {		  
-	*out=*ci;
-	++j;
-	++out;
-      } while ((++ci)!=ci_end);
+    {
+      *out = *ci;
+      ++j;
+      ++out;
+    } while ((++ci) != ci_end);
 
-    return j; 
+    return j;
   }
-  
+
   bool isSet() const
   {
     return !(flags & SEGMENT_FLAG_NOTSET);
@@ -246,32 +257,32 @@ public:
 
   bool isShared() const
   {
-    return (vertices[0]->isShared()||vertices[1]->isShared());
+    return (vertices[0]->isShared() || vertices[1]->isShared());
   }
 
   bool isOnBoundary() const
   {
-    return (vertices[0]->isBoundary()&&vertices[1]->isBoundary());
+    return (vertices[0]->isBoundary() && vertices[1]->isBoundary());
   }
 
   bool isGhost() const
   {
-    return (vertices[0]->isGhost()||vertices[1]->isGhost());    
+    return (vertices[0]->isGhost() || vertices[1]->isGhost());
   }
 
   bool isShadow() const
   {
-    return (vertices[0]->isShadow()||vertices[1]->isShadow());    
+    return (vertices[0]->isShadow() || vertices[1]->isShadow());
   }
 
   bool isShadowOrGhost() const
   {
-    return (vertices[0]->isShadowOrGhost()||vertices[1]->isShadowOrGhost());  
+    return (vertices[0]->isShadowOrGhost() || vertices[1]->isShadowOrGhost());
   }
 
   bool haveAlertFlag() const
   {
-    return (flags & SEGMENT_FLAG_ALERT);    
+    return (flags & SEGMENT_FLAG_ALERT);
   }
 
   /*
@@ -283,7 +294,7 @@ public:
   bool isBoundary() const
   {
     return flags & SEGMENT_FLAG_BOUNDARY;
-  }  
+  }
   */
 
   /*
@@ -293,13 +304,13 @@ public:
     double len=0;
     for (int i=0;i<NDIM_W;i++)
       {
-	double d=(vertices[1]->coords[i]-vertices[0]->coords[i]);
-	if (d>=1) d-=2;
-	if (d<-1) d+=2;
-	len+=d*d;
+  double d=(vertices[1]->coords[i]-vertices[0]->coords[i]);
+  if (d>=1) d-=2;
+  if (d<-1) d+=2;
+  len+=d*d;
       }
     return sqrt(len);
-  }  
+  }
   */
   Handle getHandle() const
   {
@@ -310,53 +321,60 @@ public:
   {
     return ConstHandle(this);
   }
-  
+
   int countSimplices() const
   {
-    if (NDIM<2) return 0;
-    //Handle handle(this);
-    int N=0;
-    //simplex_circulator ci_end=simplex->getSegmentCirculator(handle);
-    const_circulator ci_end=getCirculator();
-    const_circulator ci=ci_end;
-   
-    do 
-      {N++;} 
-    while ((++ci)!=ci_end);
-   
+    if (NDIM < 2)
+      return 0;
+    // Handle handle(this);
+    int N = 0;
+    // simplex_circulator ci_end=simplex->getSegmentCirculator(handle);
+    const_circulator ci_end = getCirculator();
+    const_circulator ci = ci_end;
+
+    do
+    {
+      N++;
+    } while ((++ci) != ci_end);
+
     return N;
   }
-  
-  // returns true if there was any non local simplex 
+
+  // returns true if there was any non local simplex
   template <class IT>
   bool countLocalSimplices(IT &val) const
   {
-    if (NDIM<2) {val=0;return false;}
-    //Handle handle(this);    
-    //simplex_circulator ci_end=simplex->getSegmentCirculator(handle);
-    const_circulator ci_end=getConstCirculator();
-    const_circulator ci=ci_end;
-    bool found=false;
-    
-    val=0;
-    do 
-      {
-	if (ci->isShadowOrGhost())
-	  found=true;
-	else ++val;
-      } while ((++ci)!=ci_end);
-    
+    if (NDIM < 2)
+    {
+      val = 0;
+      return false;
+    }
+    // Handle handle(this);
+    // simplex_circulator ci_end=simplex->getSegmentCirculator(handle);
+    const_circulator ci_end = getConstCirculator();
+    const_circulator ci = ci_end;
+    bool found = false;
+
+    val = 0;
+    do
+    {
+      if (ci->isShadowOrGhost())
+        found = true;
+      else
+        ++val;
+    } while ((++ci) != ci_end);
+
     return found;
   }
-  
+
   /*
   template <class OutputIterator>
   void getCenter(OutputIterator c) const
   {
     for (int i=0;i<NDIM_W;i++)
       {
-	(*c)=0.5*(vertices[1]->getCoord(i)+vertices[0]->getCoord(i));
-	++c;
+  (*c)=0.5*(vertices[1]->getCoord(i)+vertices[0]->getCoord(i));
+  ++c;
       }
   }
   */
@@ -364,27 +382,28 @@ public:
   void print() const
   {
     glb::console->print<L>("Segment [%ld(%ld),%ld(%ld)]=[(%ld,%ld);(%ld,%ld)]: s=%ld(%ld) / Flags=%d\n",
-		      (long)vertices[0],(long)vertices[0]->getLocalIndex(),
-		      (long)vertices[1],(long)vertices[1]->getLocalIndex(),
-		      (long)vertices[0]->getGlobalIdentity().rank(),(long)vertices[0]->getGlobalIdentity().id(),
-		      (long)vertices[1]->getGlobalIdentity().rank(),(long)vertices[1]->getGlobalIdentity().id(),
-		      (long)simplex,(long)simplex->getLocalIndex(),(int)flags);
+                           (long)vertices[0], (long)vertices[0]->getLocalIndex(),
+                           (long)vertices[1], (long)vertices[1]->getLocalIndex(),
+                           (long)vertices[0]->getGlobalIdentity().rank(), (long)vertices[0]->getGlobalIdentity().id(),
+                           (long)vertices[1]->getGlobalIdentity().rank(), (long)vertices[1]->getGlobalIdentity().id(),
+                           (long)simplex, (long)simplex->getLocalIndex(), (int)flags);
   }
 
-  bool operator<  (const MyType &other) const 
+  bool operator<(const MyType &other) const
   {
-    std::pair<Vertex*,Vertex*> A=getOrderedVertices();
-    std::pair<Vertex*,Vertex*> B=other.getOrderedVertices();
-    if ( (*A.first) < (*B.first) ) return true;
-    else if ( (*A.first) == (*B.first) )
-      {
-	if ( (*A.second) < (*B.second) ) return true;
-      }
-    
+    std::pair<Vertex *, Vertex *> A = getOrderedVertices();
+    std::pair<Vertex *, Vertex *> B = other.getOrderedVertices();
+    if ((*A.first) < (*B.first))
+      return true;
+    else if ((*A.first) == (*B.first))
+    {
+      if ((*A.second) < (*B.second))
+        return true;
+    }
+
     return false;
   }
 
-  
 protected:
   Vertex *vertices[2];
   Simplex *simplex;
@@ -392,41 +411,41 @@ protected:
 
   void split(Vertex *v, Segment *newSeg)
   {
-    (*newSeg)=(*this);
-    vertices[1]=v;
-    newSeg->vertices[0]=v;    
+    (*newSeg) = (*this);
+    vertices[1] = v;
+    newSeg->vertices[0] = v;
   }
 
-  void setVertex(int which, Vertex *v, bool reverse=false)
+  void setVertex(int which, Vertex *v, bool reverse = false)
   {
-    vertices[(reverse)?(1-which):which]=v;
+    vertices[(reverse) ? (1 - which) : which] = v;
   }
 
-  void set(Vertex *v[2], Simplex *s=NULL)
+  void set(Vertex *v[2], Simplex *s = NULL)
   {
-    vertices[0]=v[0];
-    vertices[1]=v[1];
+    vertices[0] = v[0];
+    vertices[1] = v[1];
     setSimplex(s);
   }
 
-  void set(Vertex *v0,Vertex *v1, Simplex *s=NULL)
+  void set(Vertex *v0, Vertex *v1, Simplex *s = NULL)
   {
-    vertices[0]=v0;
-    vertices[1]=v1;
+    vertices[0] = v0;
+    vertices[1] = v1;
     setSimplex(s);
   }
 
   void setSimplex(Simplex *s)
   {
-    simplex=s;
-    if (s!=NULL) 
-      {
-	if ((vertices[0]!=NULL)&&(vertices[1]!=NULL))
-	  setSetF(true);	
-      }
+    simplex = s;
+    if (s != NULL)
+    {
+      if ((vertices[0] != NULL) && (vertices[1] != NULL))
+        setSetF(true);
+    }
   }
-  
-  void setSetF(bool b=true)
+
+  void setSetF(bool b = true)
   {
     if (b)
       flags &= ~SEGMENT_FLAG_NOTSET;
@@ -434,7 +453,7 @@ protected:
       flags |= SEGMENT_FLAG_NOTSET;
   }
 
-  void setAlertF(bool b=true)
+  void setAlertF(bool b = true)
   {
     if (b)
       flags |= SEGMENT_FLAG_ALERT;

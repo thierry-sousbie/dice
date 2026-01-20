@@ -9,7 +9,7 @@
 	| |              | || |              | || |              | || |              | |
 	| '--------------' || '--------------' || '--------------' || '--------------' |
 	'----------------'  '----------------'  '----------------'  '----------------'
-Version 0.9.47  
+Version 0.9.50  
 Copyright(c) 2015 by Thierry Sousbie. All rights reserved.  
 Author: Thierry Sousbie - tsousbie[a]gmail[dot]com  
   

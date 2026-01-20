@@ -14,11 +14,9 @@
 #define D_BOUNDARY_TYPE BOXED
 #endif
 
-typedef 
-Coldice< D_DIMS_COUNT , dice::BoundaryType:: D_BOUNDARY_TYPE>
-SolverImpl;
+typedef Coldice<D_DIMS_COUNT, dice::BoundaryType::D_BOUNDARY_TYPE>
+    SolverImpl;
 
-
-typedef dice::slv::SolverInterfaceT< StaticPotential<SolverImpl> > Problem;
+typedef dice::slv::SolverInterfaceT<StaticPotential<SolverImpl>> Problem;
 
 #endif

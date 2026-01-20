@@ -4,7 +4,7 @@
 #include "../dice_globals.hxx"
 
 /**
- * @file 
+ * @file
  * @brief  A class to extract edges from a set of voxels
  * @author Thierry Sousbie
  */
@@ -19,36 +19,33 @@
  *
  */
 
-template <int ND, typename C=double>
+template <int ND, typename C = double>
 class voxelSegmentsExtractorT
 {
 public:
   typedef C Coord;
-  
+
   static int NDIM = ND;
-  
 
   voxelSegmentsExtractorT()
-  {}
+  {
+  }
 
   ~voxelSegmentsExtractorT()
-  {}
+  {
+  }
 
   void reset()
   {
-
   }
-
 
 private:
   typedef std::list<Coord> CoordList;
 
-  std::vector< CoordList > coordListPool;
+  std::vector<CoordList> coordListPool;
 
-  std::list< CoordList* > coord[ND];
-  std::list< SegList > coord[ND];
-  
-
+  std::list<CoordList *> coord[ND];
+  std::list<SegList> coord[ND];
 }
 
 /** \}*/

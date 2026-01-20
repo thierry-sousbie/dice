@@ -10,14 +10,14 @@
 #include "./internal/namespace.header"
 
 void initialize(int *argc, char ***argv,
-		bool useParamsParser=true,
-		bool initializeMpi=true)
+                bool useParamsParser = true,
+                bool initializeMpi = true)
 {
-  GlobalObjects::init(argc,argv,useParamsParser,initializeMpi);
+  GlobalObjects::init(argc, argv, useParamsParser, initializeMpi);
 }
 
 void finalize()
-{  
+{
   GlobalObjects::cleanUp();
 }
 

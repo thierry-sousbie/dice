@@ -4,7 +4,7 @@
 #include "./internal/determinant_implementation.hxx"
 
 /**
- * @file 
+ * @file
  * @brief  A class to compute the determinant of small matrices
  * @author Thierry Sousbie
  */
@@ -27,15 +27,15 @@ struct DeterminantT
 {
   static const int NDIM = ND;
   typedef T Type;
-  
+
   /** \brief Compute the determinant of 'mat'
-   *  \param mat the matrix   
+   *  \param mat the matrix
    *  \return the determinant of 'mat'
    */
-  static inline T 
+  static inline T
   compute(const T (&mat)[ND][ND])
   {
-    return internal::DeterminantT<ND,T>::compute(mat);    
+    return internal::DeterminantT<ND, T>::compute(mat);
   }
 };
 

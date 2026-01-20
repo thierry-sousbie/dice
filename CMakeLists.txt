@@ -1,12 +1,16 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.27.0)
 project(DICE)
 set(USE_LONG_INT_DEF false)
 set(USE_SIMPLE_PRECISION_DEF false)
 set(USE_TR1_DEF true)
-set(USE_CPP11_DEF true)
+set(USE_CPP17_DEF true)
 set(USE_PTHREADS_DEF true)
 set(USE_OPENMP_DEF true)
 set(USE_QUAD_MATH_DEF true)
 set(USE_NATIVE_FLAGS_DEF true)
+
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # default path
 #set(GMP_DIR_DEF "/home/thierry/libs/")
@@ -14,14 +18,16 @@ set(USE_NATIVE_FLAGS_DEF true)
 #set(FFTW3_DIR_DEF "/home/thierry/data/libs2/")
 #set(PARMETIS_DIR_DEF "/home/thierry/libs/")
 
+#-Wno-deprecated-declarations
+
 #These are automatically added supplementary compilation flags
-SET(CXX_DEBUG_OPTS "-g -O0 -fno-inline-functions -fsanitize=address  ")#-vec-report3 -guide -fsanitize=thread
-SET(CXX_OPTS "-g -Wall -Wno-comment  -fno-common -Wpointer-arith -Wwrite-strings -fno-math-errno -fno-strict-aliasing -funroll-loops -DNDEBUG -O3") 
+SET(CXX_DEBUG_OPTS "-g -O0 -fno-inline-functions -fsanitize=address -Wno-deprecated-declarations")#-vec-report3 -guide -fsanitize=thread
+SET(CXX_OPTS "-g -Wall -Wno-deprecated-declarations -Wno-comment  -fno-common -Wpointer-arith -Wwrite-strings -fno-math-errno -fno-strict-aliasing -funroll-loops -DNDEBUG -O3") 
 #SET(CXX_OPTS "${CXX_OPTS}  ")  #-vec-report2 -march=corei7-avx -restrict -prof-gen -prof-dir~/prog/dice/build/profdata -march=corei7-avx -fno-omit-frame-pointer
 
 ########## NO MODIFICATION NEEDED BELOW THIS LINE ##########
 
-SET( CMAKE_CXX_FLAGS_CUSTOM_DEF "-O3 -msse2 -mavx -std=gnu++11 -DNDEBUG" CACHE STRING
+SET( CMAKE_CXX_FLAGS_CUSTOM_DEF "-O3 -msse2 -mavx -std=gnu++17 -DNDEBUG" CACHE STRING
   "default flags for custom builds"
   FORCE )
 
@@ -32,9 +38,7 @@ endif()
 
 set (DICE_VERSION_MAJOR 0)
 set (DICE_VERSION_MINOR 9)
-set (DICE_VERSION_BUILD 49)
-
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+set (DICE_VERSION_BUILD 50)
 
 add_definitions(
   -DVER_MAJOR=${DICE_VERSION_MAJOR} 
@@ -50,7 +54,7 @@ set(CMAKE_CXX_FLAGS_CUSTOM ${CMAKE_CXX_FLAGS_CUSTOM_DEF} CACHE binary "custom bu
 set(USE_LONG_INT ${USE_LONG_INT_DEF} CACHE binary "use long integers")
 set(USE_SIMPLE_PRECISION ${USE_SIMPLE_PRECISION_DEF} CACHE binary "use simple precision floats")
 set(USE_TR1 ${USE_TR1_DEF} CACHE binary "use TR1 C++")
-set(USE_CPP11 ${USE_CPP11_DEF} CACHE binary "use CPP11 C++")
+set(USE_CPP17 ${USE_CPP17_DEF} CACHE binary "use CPP17 C++")
 set(USE_NATIVE_FLAGS ${USE_NATIVE_FLAGS_DEF} CACHE binary "use C++ native architecture flags")
 set(USE_PTHREADS ${USE_PTHREADS_DEF} CACHE binary "use pthreads")
 set(USE_OPENMP ${USE_OPENMP_DEF} CACHE binary "use OpenMP")
@@ -68,13 +72,14 @@ set_property(CACHE USE_OPENMP PROPERTY STRINGS true false)
 
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS  true)
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/modules")
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6.3)
-  if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-    cmake_policy(VERSION 2.8.4)
-  else()
-    cmake_policy(VERSION 2.6.3)
-  endif()
-endif()
+cmake_policy(VERSION 3.27.0)
+# if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6.3)
+#   if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
+#     cmake_policy(VERSION 2.8.4)
+#   else()
+#     cmake_policy(VERSION 2.6.3)
+#   endif()
+# endif()
 
 include (${PROJECT_SOURCE_DIR}/modules/cmessage.cmake)
 
@@ -188,10 +193,11 @@ IF (EIGEN3_FOUND)
   add_definitions( "-DHAVE_EIGEN3" )  
 ENDIF()
 
-if (USE_CPP11)
-  FIND_PACKAGE(CPP11) 
+if (USE_CPP17)
+  set(CPP17_FOUND true)
+  # FIND_PACKAGE(CPP17) 
 else()
-  set(CPP11_FOUND false)
+  set(CPP17_FOUND false)
 endif()
 
 FIND_PACKAGE(NativeFlags) 
@@ -211,13 +217,17 @@ if (USE_PTHREADS OR USE_OPENMP)
 endif()
 
 if (USE_OPENMP)
-   FIND_PACKAGE(OpenMP)
-   SET(OPENMP_FLAG ${OpenMP_CXX_FLAGS})
-   if (OPENMP_FOUND)
-      message( STATUS "Found openmp flags: ${OpenMP_CXX_FLAGS}" )
-   else()
-	cmessage(STATUS_RED "No working openmp flag could be found !")
-   endif()
+  if(DEFINED OpenMP_DIR)
+    include_directories(${OpenMP_DIR}/include)
+    link_libraries(${OpenMP_DIR}/lib/libomp.dylib) # For OSX in particular
+  endif()
+  FIND_PACKAGE(OpenMP)
+  SET(OPENMP_FLAG ${OpenMP_CXX_FLAGS})
+  if (OPENMP_FOUND)
+    message( STATUS "Found openmp flags: ${OpenMP_CXX_FLAGS}" )
+  else()
+	  cmessage(STATUS_RED "No working openmp flag could be found !")
+  endif()
 endif()
 
 message(STATUS "Using the following compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -296,10 +306,10 @@ else()
   endif()
 endif()
 
-SET(CXX_FLAGS_CPP11 "-std=c++0x")
-if (CPP11_FOUND)
-  add_definitions( "-DHAVE_CPP11" )  
-  SET(CXX_FLAGS_CPP11 "-std=c++11")
+SET(CXX_FLAGS_CPP17 "-std=c++0x")
+if (CPP17_FOUND)
+  add_definitions( "-DHAVE_CPP17" )  
+  SET(CXX_FLAGS_CPP17 "-std=c++17")
 endif()
 
 if (TR1_UNORDERED_MAP_FOUND)
@@ -401,7 +411,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   endif()
 
   #if (GCXX_VERSION VERSION_LESS 4.7.0 )
-  #  SET(CXX_FLAGS_CPP11 "-std=c++0x")
+  #  SET(CXX_FLAGS_CPP17 "-std=c++0x")
   #endif()
 
 else()  
@@ -411,23 +421,23 @@ endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
   message(STATUS "Supressed warnings : ${WARNING_SUPRESS_FLAGS}")
-  message(STATUS "Extra CXX flags : ${CXX_FLAGS_CPP11} ${CXX_DEBUG_OPTS} ${CXX_FLAGS_PROF}")
+  message(STATUS "Extra CXX flags : ${CXX_FLAGS_CPP17} ${CXX_DEBUG_OPTS} ${CXX_FLAGS_PROF}")
   message(STATUS "Extra linker flags : ${EXE_LINKER_FLAGS_PROF} ${CMAKE_EXE_LINKER_FLAGS_EXTRA}")
   message(STATUS "User specified flags : ${CXX_FLAGS_EXTRA}")
 
   #-O0 -fno-inline-functions
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_EXTRA} ${WARNING_SUPRESS_FLAGS} ${CXX_FLAGS_CPP11} ${CXX_DEBUG_OPTS} ${CXX_FLAGS_PROF}")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_EXTRA} ${WARNING_SUPRESS_FLAGS} ${CXX_FLAGS_CPP17} ${CXX_DEBUG_OPTS} ${CXX_FLAGS_PROF}")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXE_LINKER_FLAGS_EXTRA} ${EXE_LINKER_FLAGS_PROF}")  
 
 else()
 
   message(STATUS "Supressed warnings : ${WARNING_SUPRESS_FLAGS}")
-  message(STATUS "Extra CXX flags : ${CXX_FLAGS_CPP11} ${CXX_OPTS} ${CXX_FLAGS_PROF}")
+  message(STATUS "Extra CXX flags : ${CXX_FLAGS_CPP17} ${CXX_OPTS} ${CXX_FLAGS_PROF}")
   message(STATUS "Extra linker flags : ${EXE_LINKER_FLAGS_PROF} ${EXE_LINKER_FLAGS_EXTRA}")
   message(STATUS "User specified flags : ${CXX_FLAGS_EXTRA}")
   
   # -std=c++0x -g -Wall -fno-common -Wpointer-arith -Wwrite-strings 
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_EXTRA} ${WARNING_SUPRESS_FLAGS} ${CXX_FLAGS_CPP11} ${CXX_OPTS} ${CXX_FLAGS_PROF}") #-Wcast-qual -Weffc++
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_EXTRA} ${WARNING_SUPRESS_FLAGS} ${CXX_FLAGS_CPP17} ${CXX_OPTS} ${CXX_FLAGS_PROF}") #-Wcast-qual -Weffc++
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXE_LINKER_FLAGS_EXTRA} ${EXE_LINKER_FLAGS_PROF} ${EXE_LINKER_OPTS}")    
 endif()
 
@@ -435,9 +445,9 @@ message(STATUS "The following compilation flags will be used: ${CMAKE_CXX_FLAGS}
 message(STATUS "The following linker flags will be used: ${CMAKE_EXE_LINKER_FLAGS}")
 
 FIND_PACKAGE(AdvancedFeatures)
-IF(NOT NULLPTR_FOUND)
-  add_definitions( "-DHAVE_NO_NULLPTR" )
-endif()
+# IF(NOT NULLPTR_FOUND)
+#   add_definitions( "-DHAVE_NO_NULLPTR" )
+# endif()
 if (OMP_ATOMIC_CAPTURE)
   add_definition( "-DHAVE_OMP_ATOMIC_CAPTURE")
 endif()
@@ -494,6 +504,7 @@ if (NOT USE_OPENMP)
 else()
   if (OPENMP_FOUND)
      cmessage(STATUS_GREEN "   * OpenMP support is ENABLED (disable with '-DUSE_OPENMP=false').")
+     cmessage(STATUS_BLUE  "     Note that -DOpenMP_DIR=... can be used to specify the path where OpenMP is installed (e.g. for OSX)")
   else ()
        cmessage(STATUS_RED "   * OpenMP support is DISABLED: your compiler does not seem to support OpenMP.") 
        LIST(APPEND DISABLED_FEATURES_LIST all:openMP)
@@ -533,7 +544,7 @@ message(STATUS "     Path to TCMALLOC and GoogleProfiler can be enforced with '-
 
 if (NOT USE_QUAD_MATH)
   if (NOT HAVE_QUAD_MATH) 
-    cmessage(STATUS_RED "   * QUAD_MATH support is NOT POSSIBLE (requires gcc4.6.0+, current is v${GCXX_MAJOR}.${GCXX_MINOR}.${GCXX_BUILD}).") 
+    message(STATUS "   * QUAD_MATH support is NOT POSSIBLE (requires gcc4.6.0+, current is v${GCXX_MAJOR}.${GCXX_MINOR}.${GCXX_BUILD}).") 
   else()
     cmessage(STATUS_RED "   * QUAD_MATH support is DISABLED (enable with '-DUSE_QUAD_MATH=true', requires gcc4.6.0+).") 
   endif()
@@ -601,13 +612,13 @@ else()
 endif()
 message(STATUS "     Path to EIGEN3 can be enforced with '-DEIGEN3_DIR=path/to/eigen'")
 
-if (CPP11_FOUND)
-  cmessage(STATUS_GREEN "   * C++11 standard compatibility found.")
-  message(STATUS        "     In case of incompatibility, disable support with '-DUSE_CPP11=false'.")
+if (CPP17_FOUND)
+  cmessage(STATUS_GREEN "   * C++17 standard compatibility found.")
+  message(STATUS        "     In case of incompatibility, disable support with '-DUSE_CPP17=false'.")
 else()
-  cmessage(STATUS_RED "   * C++11 standard is NOT supported by this compiler or support was disabled.")
-  if (NOT USE_CPP11)
-    message(STATUS        "     Enable support checking with '-DUSE_CPP11=true'.")
+  cmessage(STATUS_RED "   * C++17 standard is NOT supported by this compiler or support was disabled.")
+  if (NOT USE_CPP17)
+    message(STATUS        "     Enable support checking with '-DUSE_CPP17=true'.")
   endif()
 endif()
 

@@ -2,7 +2,7 @@
 #define __GRID_KERNELS_OPERATIONS_HXX__
 
 /**
- * @file 
+ * @file
  * @brief Definition possible operations over grid kernels
  * @author Thierry Sousbie
  */
@@ -12,15 +12,17 @@
  *   \{
  */
 
-namespace gridKernel{
+namespace gridKernel
+{
 
-  enum KernelOp {
-    IMPRINT=0, /**< Set pixels overlaped by the kernel to a given value */
-    APPLY=1,   /**< Apply the kernel */
-    COPY=2,    /**< Copy the value overlapped by the kernel */
-    INTERNAL1   /**< internal operation, do not use ;) */
+  enum KernelOp
+  {
+    IMPRINT = 0, /**< Set pixels overlaped by the kernel to a given value */
+    APPLY = 1,   /**< Apply the kernel */
+    COPY = 2,    /**< Copy the value overlapped by the kernel */
+    INTERNAL1    /**< internal operation, do not use ;) */
   };
-  
+
 }
 
 /** \}*/

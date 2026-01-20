@@ -6,13 +6,13 @@
 // Remove warnings for unused variable
 #define UNUSED_VARIABLE(expr) (void)(expr)
 
-//#define OFFSETOF(type, field)    ((size_t) ( (char *)&((type *)(0))->field - (char *)0 ))
-#define OFFSETOF(type, field)    offsetof(type,field)
-#define OFFSETOF_D(inst,field)    ((size_t) ( (char *)&inst->field - (char *)&inst ))
+// #define OFFSETOF(type, field)    ((size_t) ( (char *)&((type *)(0))->field - (char *)0 ))
+#define OFFSETOF(type, field) offsetof(type, field)
+#define OFFSETOF_D(inst, field) ((size_t)((char *)&inst->field - (char *)&inst))
 
 #define DO_STRINGIFY(x) #x
 #define STRINGIFY(x) DO_STRINGIFY(x)
-#define CONCAT_ONE_ARGUMENT(x,arg) x ( arg )
+#define CONCAT_ONE_ARGUMENT(x, arg) x(arg)
 /*
 #define MAKE_ENUM(name, ...) enum class name { __VA_ARGS__, __COUNT}; \
 inline std::ostream& operator<<(std::ostream& os, name value) { \
@@ -31,11 +31,11 @@ if(isspace(str[i])) continue; \
 } \
 strings.push_back(temp.str()); \
 os << enumName << "::" << strings[static_cast<int>(value)]; \
-return os;} 
+return os;}
 */
-//#define COMMA() ,
+// #define COMMA() ,
 
-//#define OFFSETOF(type, field)    ((size_t) &(((type *) 0)->field))
-//#define OFFSETOF(type, field) offsetof(type,field)
+// #define OFFSETOF(type, field)    ((size_t) &(((type *) 0)->field))
+// #define OFFSETOF(type, field) offsetof(type,field)
 
 #endif

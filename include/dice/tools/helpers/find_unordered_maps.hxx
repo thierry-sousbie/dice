@@ -2,7 +2,7 @@
 #define _FIND_UNORDERED_MAPS_HEADER_
 
 /**
- * @file 
+ * @file
  * @brief  Generic support for unordered maps and sparsehash : import hash table support
  * from in C++11, TR1, boost or regular map in that order depending on availability. Sparse
  * hash wrapper is also defined, using regular hash map if unavailable.
@@ -16,7 +16,7 @@
 /** \addtogroup TOOLS
  * \{
  */
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_unordered_map
 {
   typedef std::unordered_map<KeyType, MappedType> type;
@@ -28,28 +28,27 @@ struct my_unordered_map
 
 #ifdef HAVE_TR1_HEADER_PREFIX
 #include <tr1/unordered_map>
-#else //HAVE_TR1_HEADER_PREFIX
+#else // HAVE_TR1_HEADER_PREFIX
 #include <unordered_map>
-#endif //HAVE_TR1_HEADER_PREFIX
-
+#endif // HAVE_TR1_HEADER_PREFIX
 
 #include "../../internal/namespace.header"
 /** \addtogroup TOOLS
  * \{
  */
 #ifdef HAVE_TR1_NAMESPACE_PREFIX
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_unordered_map
 {
   typedef std::tr1::unordered_map<KeyType, MappedType> type;
 };
-#else //HAVE_TR1_NAMESPACE_PREFIX
-template<typename KeyType, typename MappedType>
+#else  // HAVE_TR1_NAMESPACE_PREFIX
+template <typename KeyType, typename MappedType>
 struct my_unordered_map
 {
   typedef std::unordered_map<KeyType, MappedType> type;
 };
-#endif//HAVE_TR1_NAMESPACE_PREFIX
+#endif // HAVE_TR1_NAMESPACE_PREFIX
 /** \}*/
 #include "../../internal/namespace.footer"
 
@@ -61,7 +60,7 @@ struct my_unordered_map
 /** \addtogroup TOOLS
  * \{
  */
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_unordered_map
 {
   typedef boost::unordered_map<KeyType, MappedType> type;
@@ -77,7 +76,7 @@ struct my_unordered_map
 /** \addtogroup TOOLS
  * \{
  */
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_unordered_map
 {
   typedef std::map<KeyType, MappedType> type;
@@ -87,8 +86,7 @@ struct my_unordered_map
 
 #endif // HAVE_CPP11
 
-
-#ifdef HAVE_SPARSEHASH 
+#ifdef HAVE_SPARSEHASH
 // specialized hash maps, for high speed (dense) or low memory (sparse)
 
 // REMEMBER : iterators are invalidated on insert, but safe on delete
@@ -104,28 +102,28 @@ struct my_unordered_map
 /** \addtogroup TOOLS
  * \{
  */
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_dense_hash
 {
-  typedef typename google::dense_hash_map<KeyType,MappedType> type;  
+  typedef typename google::dense_hash_map<KeyType, MappedType> type;
 };
 
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_sparse_hash
 {
-  typedef typename google::sparse_hash_map<KeyType,MappedType> type;  
+  typedef typename google::sparse_hash_map<KeyType, MappedType> type;
 };
 
-template<typename KeyType>
+template <typename KeyType>
 struct my_dense_set
 {
-  typedef typename google::dense_hash_set<KeyType> type;  
+  typedef typename google::dense_hash_set<KeyType> type;
 };
 
-template<typename KeyType>
+template <typename KeyType>
 struct my_sparse_set
 {
-  typedef typename google::sparse_hash_set<KeyType> type;  
+  typedef typename google::sparse_hash_set<KeyType> type;
 };
 
 template <class T>
@@ -153,25 +151,27 @@ void set_hash_deleted_key(T &hash, typename T::key_type key)
 /** \addtogroup TOOLS
  * \{
  */
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_dense_hash
 {
-  typedef typename my_unordered_map<KeyType,MappedType>::type type;  
+  typedef typename my_unordered_map<KeyType, MappedType>::type type;
 };
 
-template<typename KeyType, typename MappedType>
+template <typename KeyType, typename MappedType>
 struct my_sparse_hash
 {
-  typedef typename my_unordered_map<KeyType,MappedType>::type type;  
+  typedef typename my_unordered_map<KeyType, MappedType>::type type;
 };
 
 template <class T>
 void set_hash_empty_key(T &hash, typename T::key_type key)
-{}
+{
+}
 
 template <class T>
 void set_hash_deleted_key(T &hash, typename T::key_type key)
-{}
+{
+}
 /** \}*/
 #include "../../internal/namespace.footer"
 #endif // HAVE_SPARSEHASH

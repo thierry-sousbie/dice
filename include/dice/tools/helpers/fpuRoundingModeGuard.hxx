@@ -2,8 +2,8 @@
 #define FPU_ROUNDING_MODE_GUARD_HXX__
 
 /**
- * @file 
- * @brief Defines a class that needs to be overloaded to set appropriate fpu rounding 
+ * @file
+ * @brief Defines a class that needs to be overloaded to set appropriate fpu rounding
  * depending on the data type.
  * @author Thierry Sousbie
  */
@@ -13,16 +13,19 @@
  * \{
  */
 
-namespace hlp {
+namespace hlp
+{
   template <class T>
   class FpuRoundingModeGuardT
   {
   public:
     // Avoid warnings
     FpuRoundingModeGuardT()
-    {}
+    {
+    }
     ~FpuRoundingModeGuardT()
-    {}
+    {
+    }
   };
 }
 

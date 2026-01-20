@@ -5,7 +5,8 @@
 #include "../../tools/helpers/helpers.hxx"
 #include "../../internal/namespace.header"
 
-namespace internal {
+namespace internal
+{
 
   template <int ND, typename CT>
   class BarycentricCoordinatesBaseT
@@ -15,105 +16,101 @@ namespace internal {
 
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
-    {      
-      return hlp::numericStaticCast<double>
-	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
+    {
+      return hlp::numericStaticCast<double>(InverseMatrixT<NDIM, T, CT>::compute(base, matrix));
     }
 
     template <class T1, class T2>
     void computeLambda(const T1 *vec, T2 *lambda) const
     {
-      lambda[1]=matrix[0][0]*vec[0];
-      lambda[0]=1.0F;
+      lambda[1] = matrix[0][0] * vec[0];
+      lambda[0] = 1.0F;
 
-      for (int i=1;i<=NDIM;i++)
-	{
-	  lambda[i]=0;
-	  for (int j=0;j<NDIM;j++)
-	    lambda[i]+=matrix[j][i]*vec[j];
-	  lambda[0]-=lambda[i];
-	}     
+      for (int i = 1; i <= NDIM; i++)
+      {
+        lambda[i] = 0;
+        for (int j = 0; j < NDIM; j++)
+          lambda[i] += matrix[j][i] * vec[j];
+        lambda[0] -= lambda[i];
+      }
     }
 
   protected:
     CT matrix[NDIM][NDIM];
   };
-  
+
   template <typename CT>
-  class BarycentricCoordinatesBaseT<1,CT>
-  {    
+  class BarycentricCoordinatesBaseT<1, CT>
+  {
   protected:
     static const int NDIM = 1;
-    
+
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return hlp::numericStaticCast<double>
-	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));
+      return hlp::numericStaticCast<double>(InverseMatrixT<NDIM, T, CT>::compute(base, matrix));
     }
 
     template <class T1, class T2>
     void computeLambda(const T1 *vec, T2 *lambda) const
     {
-      lambda[1]=matrix[0][0]*vec[0];
-      lambda[0]=1.0F-lambda[1];
+      lambda[1] = matrix[0][0] * vec[0];
+      lambda[0] = 1.0F - lambda[1];
     }
-    
+
   protected:
-    CT matrix[NDIM][NDIM];    
+    CT matrix[NDIM][NDIM];
   };
 
   template <typename CT>
-  class BarycentricCoordinatesBaseT<2,CT>
+  class BarycentricCoordinatesBaseT<2, CT>
   {
   protected:
     static const int NDIM = 2;
 
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
-    {      
-      return hlp::numericStaticCast<double>
-	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));    
-    }
-    
-    template <class T1, class T2>
-    void computeLambda(const T1  vec[], T2 lambda[]) const
     {
-      lambda[1] = matrix[0][0]*vec[0] + matrix[1][0]*vec[1];
-      lambda[2] = matrix[0][1]*vec[0] + matrix[1][1]*vec[1];
+      return hlp::numericStaticCast<double>(InverseMatrixT<NDIM, T, CT>::compute(base, matrix));
+    }
+
+    template <class T1, class T2>
+    void computeLambda(const T1 vec[], T2 lambda[]) const
+    {
+      lambda[1] = matrix[0][0] * vec[0] + matrix[1][0] * vec[1];
+      lambda[2] = matrix[0][1] * vec[0] + matrix[1][1] * vec[1];
       lambda[0] = 1.0F - lambda[1] - lambda[2];
     }
-    
+
   protected:
     CT matrix[NDIM][NDIM];
   };
-  
+
   template <typename CT>
-  class BarycentricCoordinatesBaseT<3,CT>
+  class BarycentricCoordinatesBaseT<3, CT>
   {
   protected:
     static const int NDIM = 3;
-    
+
     template <class T>
     double computeCoeffs(const T (&base)[NDIM][NDIM])
     {
-      return hlp::numericStaticCast<double>
-	(InverseMatrixT<NDIM,T,CT>::compute(base,matrix));          
+      return hlp::numericStaticCast<double>(InverseMatrixT<NDIM, T, CT>::compute(base, matrix));
     }
-    
+
     template <class T1, class T2>
     void computeLambda(const T1 *vec, T2 *lambda) const
     {
-      lambda[1] = matrix[0][0]*vec[0] + matrix[1][0]*vec[1] + matrix[2][0]*vec[2];
-      lambda[2] = matrix[0][1]*vec[0] + matrix[1][1]*vec[1] + matrix[2][1]*vec[2];
-      lambda[3] = matrix[0][2]*vec[0] + matrix[1][2]*vec[1] + matrix[2][2]*vec[2];
+      lambda[1] = matrix[0][0] * vec[0] + matrix[1][0] * vec[1] + matrix[2][0] * vec[2];
+      lambda[2] = matrix[0][1] * vec[0] + matrix[1][1] * vec[1] + matrix[2][1] * vec[2];
+      lambda[3] = matrix[0][2] * vec[0] + matrix[1][2] * vec[1] + matrix[2][2] * vec[2];
       lambda[0] = 1.0F - lambda[1] - lambda[2] - lambda[3];
     }
-    
+
   protected:
-    CT matrix[NDIM][NDIM]; 
+    CT matrix[NDIM][NDIM];
   };
-  
+
 }
 
 #include "../../internal/namespace.footer"

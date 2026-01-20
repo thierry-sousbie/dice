@@ -2,16 +2,18 @@
 #define __FILTER_TYPE_HXX__
 
 /**
- * @file 
+ * @file
  * @brief  Filter types definition
  * @author Thierry Sousbie
  */
 
 #include "../../internal/namespace.header"
 
-namespace predicate { 
+namespace predicate
+{
   /** \brief a namespace containing the definitions of the different predicate filter types */
-  namespace filterType {
+  namespace filterType
+  {
 
     /** \addtogroup Geometry
      *   \{
@@ -19,14 +21,14 @@ namespace predicate {
 
     /** \enum Type Possible types of the predicate filters
      */
-    enum Type {
-      Raw=0,      /**< Fast inexact predicate, using only regular double precision */
-      Exact=1,    /**< Slow exact predicate using GMP */
-      Adaptive=2  /**< The best of both worlds ;) */
+    enum Type
+    {
+      Raw = 0,     /**< Fast inexact predicate, using only regular double precision */
+      Exact = 1,   /**< Slow exact predicate using GMP */
+      Adaptive = 2 /**< The best of both worlds ;) */
     };
 
     /** \}*/
-
 
   }
 }
